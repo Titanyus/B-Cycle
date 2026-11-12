@@ -1,3 +1,7 @@
+# Training: Footer-Schalter und Stärke (noch unveröffentlicht)
+
+TrainingManagerView nutzt zentrale BicycleFooterVisibility mit Header-Schalter, initial verborgen, Auswahl darf temporär einblenden. Sortierauswahl zuerst Stärke, dann Dauer/Belastung/Intensität plus Richtung; Abschnitte als Sortiermethode entfernt, Kennzahl bleibt. Stärke anhand unveränderter bestehender TrainingIntensity-Tags: Leicht/Sweet Spot/Hart; Sweet Spot laut Nutzer eigener Gruppe, unklassifiziert zuletzt mit „Ohne Einstufung“. Keine Änderung der Taggrenzen, Trainingsdaten oder Standard-Dauersortierung. Prüfungen training-strength-footer-final-tests.log. Keine neue APK beauftragt.
+
 # Weitere Kombibox nach Build159 (noch unveröffentlicht)
 
 Unter fit_stored_values bleiben äußeres Accordion und Erklärung erhalten, darunter neue gemeinsame BicycleGroupedBox mit Metadaten und allen Datenquellen (GPS, E-Bike usw.). Originale Frames/Metadaten-Wrapper/Listener/IDs und Expanded-State erhalten, nur Einzelrahmen entfernt, normale8dp-Eintragstrenner. Keine neue APK beauftragt.

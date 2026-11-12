@@ -106,7 +106,14 @@ class TrainingLibraryTest {
                 org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                 val decor=screen.window!!.decorView;decor.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));decor.layout(0,0,360,800)
             }
-            drain();screen.window!!.decorView.findViewWithTag<View>("training_import").performClick()
+            drain()
+            val footer=screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen_footer")
+            val footerToggle=screen.window!!.decorView.findViewWithTag<View>("route_footer_toggle")
+            assertNotNull(footerToggle);assertEquals(View.GONE,footer.visibility)
+            footerToggle.performClick();assertEquals(View.VISIBLE,footer.visibility)
+            footerToggle.performClick();assertEquals(View.GONE,footer.visibility)
+            footerToggle.performClick()
+            screen.window!!.decorView.findViewWithTag<View>("training_import").performClick()
             val popup=MainActivity::class.java.getDeclaredField("routePopup").apply { isAccessible=true }.get(a) as android.widget.ListPopupWindow
             val choices=popup.listView!!
             assertEquals(TrainingImportAction.entries.size,choices.adapter.count)

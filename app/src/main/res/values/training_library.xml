@@ -62,4 +62,6 @@
     <string name="training_variant_description">Trainingslänge: %1$s</string>
     <string name="training_variant_cycle">Antippen wechselt zur nächsten Variante: Quick+, Quick, Std, Ext, Ext+.</string>
     <string name="training_variant_unavailable">Standard. Kein eindeutiger wiederholter Hauptblock mit mindestens fünf Intervallen erkannt.</string>
+    <string name="training_sort_strength">Stärke</string>
+    <string name="training_strength_unclassified">Ohne Einstufung</string>
 </resources>

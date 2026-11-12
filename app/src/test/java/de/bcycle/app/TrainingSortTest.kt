@@ -20,13 +20,19 @@ class TrainingSortTest {
         val profile=RiderProfile();val input=listOf(unknown,long,short)
         for(sort in TrainingSort.entries) for(down in listOf(false,true)) {
             val result=sort.ordered(input,profile,down)
-            val known=result.map { sort.value(TrainingMetrics.of(it,profile)) }.filterNotNull()
+            val known=result.map { sort.value(it,profile) }.filterNotNull()
             assertEquals(if(down) known.sortedDescending() else known.sorted(),known)
-            if(sort!=TrainingSort.SECTIONS) assertEquals(unknown.id,result.last().id)
+            assertEquals(unknown.id,result.last().id)
         }
         assertEquals(short.id,TrainingSort.DURATION.ordered(input,profile,false).first().id)
         assertEquals(long.id,TrainingSort.LOAD.ordered(input,profile,false).first().id)
         assertEquals(short.id,TrainingSort.INTENSITY.ordered(input,profile,true).first().id)
+    }
+    @Test fun strengthKeepsSweetSpotSeparateAndUnclassifiedLast() {
+        val easy=workout('a',600.0,.5,1);val sweet=workout('b',600.0,.9,1);val hard=workout('c',600.0,1.1,1);val unclassified=workout('d',600.0,.8,1)
+        val input=listOf(hard,unclassified,sweet,easy)
+        assertEquals(listOf(easy,sweet,hard,unclassified),TrainingSort.STRENGTH.ordered(input,RiderProfile(),false))
+        assertEquals(listOf(hard,sweet,easy,unclassified),TrainingSort.STRENGTH.ordered(input,RiderProfile(),true))
     }
     @Test fun fiveTilesFitAndSwitchMetricAndDirectionInBothDesigns() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
@@ -40,7 +46,7 @@ class TrainingSortTest {
                 for(width in listOf(320,360,480)) {
                     root.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(300,View.MeasureSpec.AT_MOST));root.layout(0,0,width,root.measuredHeight)
                     val row=root.findViewWithTag<LinearLayout>("training_sort_choices")
-                    assertEquals(5,row.childCount);assertTrue(row.getChildAt(4).right<=row.width)
+                    assertEquals(5,row.childCount);assertEquals("training_sort_STRENGTH",row.getChildAt(0).tag);assertTrue(row.getChildAt(4).right<=row.width)
                     for(sort in TrainingSort.entries) {
                         root.findViewWithTag<View>("training_sort_${sort.name}").performClick()
                         assertEquals(sort,selected)

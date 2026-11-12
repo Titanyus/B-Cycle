@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 
-/** Same five native icon tiles and footer positioning as the route sort menu. */
+/** Shared native icon tiles and footer positioning as the route sort menu. */
 internal class TrainingSortPopup(private val context:Context,themes:ThemeManager,sort:TrainingSort,descending:Boolean,
     select:(TrainingSort)->Unit,direction:(Boolean)->Unit):PopupWindow() {
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
@@ -21,7 +21,7 @@ internal class TrainingSortPopup(private val context:Context,themes:ThemeManager
             row.addView(button,LinearLayout.LayoutParams(0,dp(BicycleDesign.rideNamePartHeight),1f).apply { marginStart=if(index==0) 0 else dp(BicycleDesign.controlGap) })
             BicycleComponents.controlSpacing(button)
         }
-        TrainingSort.entries.forEachIndexed { index,value ->
+        (listOf(TrainingSort.STRENGTH)+TrainingSort.entries.filter { it!=TrainingSort.STRENGTH }).forEachIndexed { index,value ->
             val button=BicycleSegmentButton(context,themes,standalone=true).apply {
                 tag="training_sort_${value.name}";setText(value.title);stackedIcon(value.icon)
                 isChecked=sort==value;contentDescription=context.getString(value.title)
@@ -38,7 +38,7 @@ internal class TrainingSortPopup(private val context:Context,themes:ThemeManager
             toggle.setText(if(down) R.string.route_sort_down else R.string.route_sort_up)
             toggle.contentDescription=toggle.text
         }
-        label();toggle.setOnClickListener { down=!down;label();direction(down) };tile(toggle,4)
+        label();toggle.setOnClickListener { down=!down;label();direction(down) };tile(toggle,TrainingSort.entries.size)
         body.addView(row,LinearLayout.LayoutParams(-1,-2));BicycleComponents.bindTheme(body,themes) { body.setBackgroundColor(it.secondary) }
         contentView=body;contentView.contentDescription=context.getString(R.string.route_sort_button)
         isFocusable=true;isOutsideTouchable=true

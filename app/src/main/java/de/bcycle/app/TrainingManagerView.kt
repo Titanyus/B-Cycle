@@ -8,7 +8,8 @@ import android.widget.*
 import java.util.Locale
 
 internal class TrainingManagerView(context:Context,private val themes:ThemeManager,private val profile:()->RiderProfile,
-    importClicked:(View)->Unit,private val deleteRequested:(Set<String>)->Unit,private val open:((TrainingWorkout)->Unit)?=null):LinearLayout(context) {
+    importClicked:(View)->Unit,private val deleteRequested:(Set<String>)->Unit,private val open:((TrainingWorkout)->Unit)?=null):LinearLayout(context),BicycleFooterPage {
+    override val footerVisibility=BicycleFooterVisibility(context)
     private data class Group(val title:String,var count:Int=0)
     private var workouts=emptyList<TrainingWorkout>()
     private var sort=TrainingSort.DURATION
@@ -131,7 +132,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         addView(list,LayoutParams(-1,0,1f));list.adapter=adapter
         fun select(position:Int) { val workout=rows.getOrNull(position) as? TrainingWorkout ?: return
             if(!selected.add(workout.id)) selected.remove(workout.id)
-            delete.isEnabled=selected.isNotEmpty();delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})");adapter.notifyDataSetChanged()
+            footerVisibility.temporary(selected.isNotEmpty());delete.isEnabled=selected.isNotEmpty();delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})");adapter.notifyDataSetChanged()
         }
         list.setOnItemClickListener { _,_,position,_ ->
             val workout=rows.getOrNull(position) as? TrainingWorkout
@@ -139,6 +140,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         }
         list.setOnItemLongClickListener { _,_,position,_->select(position);true }
         val footer=bicycleFooter(context,themes)
+        footerVisibility.bindFooter(footer)
         lateinit var import:BicycleFooterAction
         import=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.training_footer_import)) { importClicked(import) }.apply { tag="training_import" }
         footer.addView(import,LayoutParams(0,-2,1f))
@@ -159,7 +161,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         list.clipToPadding=false
     }
     val selecting get()=selected.isNotEmpty()
-    fun clearSelection() { selected.clear();delete.isEnabled=false;delete.setLabel(context.getString(R.string.route_action_delete));adapter.notifyDataSetChanged() }
+    fun clearSelection() { selected.clear();footerVisibility.temporary(false);delete.isEnabled=false;delete.setLabel(context.getString(R.string.route_action_delete));adapter.notifyDataSetChanged() }
     fun message(text:String) {
         BicycleFeedback.update(status,text)
         status.visibility=if(text.isBlank()) GONE else VISIBLE
@@ -179,16 +181,18 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         if(next>=0) list.setSelectionFromTop(next,top)
     }
     fun render(workouts:List<TrainingWorkout>) {
-        selected.retainAll(workouts.map { it.id }.toSet());delete.isEnabled=selected.isNotEmpty()
+        selected.retainAll(workouts.map { it.id }.toSet());if(selected.isEmpty()) footerVisibility.temporary(false);delete.isEnabled=selected.isNotEmpty()
         delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})")
         this.workouts=workouts.toList()
         val rider=profile()
         rows=buildList {
             var previous:Group?=null
             for(workout in sort.ordered(workouts.map { TrainingVariants.apply(it,TrainingVariants.selected(context,it)) },rider,descending)) {
-                val value=sort.value(TrainingMetrics.of(workout,rider))
-                val label=if(value==null) context.getString(R.string.training_sort_unknown) else {
-                    val step=when(sort) { TrainingSort.DURATION->1800.0;TrainingSort.LOAD->25.0;TrainingSort.INTENSITY->.1;TrainingSort.SECTIONS->5.0 }
+                val value=sort.value(workout,rider)
+                val label=if(sort==TrainingSort.STRENGTH) {
+                    TrainingIntensity.of(workout,rider)?.let { context.getString(it.title) } ?: context.getString(R.string.training_strength_unclassified)
+                } else if(value==null) context.getString(R.string.training_sort_unknown) else {
+                    val step=when(sort) { TrainingSort.STRENGTH->error("Categorical strength has no numeric range");TrainingSort.DURATION->1800.0;TrainingSort.LOAD->25.0;TrainingSort.INTENSITY->.1 }
                     val upper=(kotlin.math.floor((value+1e-9)/step)+1)*step
                     val amount=when(sort) {
                         TrainingSort.DURATION->"${(upper/60).toInt()} ${context.getString(R.string.analysis_minutes)}"

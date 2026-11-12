@@ -89,3 +89,11 @@ Reine Anzahlmeldung unter dem Hauptheader entfernt; Statuszeile nur für Laden/F
 Nutzerbestätigt: globale Sortierung und Gruppen nach dem gewählten numerischen Wert statt Trainingsart. Bereiche in30min-Schritten,25 Belastungspunkten,0,1 Intensität bzw.5 Abschnitten, obere Grenzen exklusiv als „unter“ beschriftet. Fehlende Werte in eigener letzter Gruppe, auch absteigend. Gleichstände stabil nach Name/ID. Gruppenköpfe verwenden RouteListGroupHeader-artige Titel-/Zahl-/Label-Geometrie, darunter die pro Gruppe berechnete Anzahl mit „Trainings“, auch in der gepinnten Kopie. Unverändert:2dp-Gruppenkopflinie/Fastscroll, Auswahl/Details/Löschen; Sortierpopup bei Detach schließen. Kennzahlen aus demselben TrainingMetrics-Modell wie sichtbare Werte, keine Anbieter-Scores.
 
 Gezielte Prüfungen: TrainingSortTest (alle Kriterien/beide Richtungen/fehlende Werte und5 Kacheln in Flat/Glow bei320/360/480dp) plus bestehende Listen-/Pinned-/Auswahl-/Lösch- und Detailnavigation. Log `/workspace/.tools/training-sort-tests.log`.
+
+## Footer und Stärkesortierung nach Build159
+
+Trainingsübersicht implementiert BicycleFooterPage, bindet vorhandenen Footer an zentrale Visibility und erhält automatisch den Header-Schalter. Initial verborgen, aktive Auswahl temporär sichtbar, beim Verlassen der Auswahl wieder ursprünglicher Zustand.
+
+Sortierung mit Stärke als erster Option, danach Dauer/Belastung/Intensität und Richtung. Abschnitte als Sortier-/Gruppiermethode entfernt, Kennzahl bleibt. Stärke ist kategorisch anhand vorhandener TrainingIntensity.of, keine neue Lastformel: Leicht, Sweet Spot und Hart; Nutzer bestätigt Sweet Spot separat. Ohne bisherigen Tag als „Ohne Einstufung“ immer zuletzt. Frühere Tagberechnung und Standard-Dauersortierung unverändert.
+
+Tests: Trainingsscreen mit echtem Vollbild-Header/Footer-Schalter, Sortierpopup bei320/360/480dp in Flat/Glow, Sweet-Spot-Reihenfolge und unklassifiziert zuletzt in beiden Richtungen; training-strength-footer-final-tests.log.
