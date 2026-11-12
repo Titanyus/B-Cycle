@@ -1,3 +1,7 @@
+# Aktueller Bildauftrag (teilweise umgesetzt)
+
+Überschriftenbereiche aller3Hauptgruppen35% höher (54dp→rund73dp), Breite/Schrift/Icon unverändert. Nutzer wünscht erstes Inline-Bild als vollbreiten Bike-Kastenhintergrund, zweites für Training, oben ausgerichtet; HRV ohne Bild. Inline-Bilder sichtbar im Chat, aber keine neuen lokalen Dateien/Dateireferenzen in dieser Umgebung gefunden; echte Bilddateien werden noch benötigt. Keine Bilder ersetzt oder nachgebaut.
+
 # Weitere Änderung noch unveröffentlicht
 
 Footer in Flat/Glow wieder durchgehend PRIMARY: zentrale Fachfooter, Dashboard samt Seitenbuttons und Dialog-Buttonleiste. Schatten-/Sichtbarkeitslogik erhalten. Keine neue APK beauftragt.

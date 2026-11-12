@@ -114,7 +114,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             }
         }
         group.addView(LinearLayout(context).apply {
-            orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false;minimumHeight=dp(BicycleDesign.settingsRowHeight)
+            orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false;minimumHeight=(dp(BicycleDesign.settingsRowHeight)*1.35f).toInt()
             BicycleComponents.bindTheme(this,themes) { setPadding(dp(BicycleDesign.horizontalPadding),0,0,dp(if(BicycleAppearance.flat(context)) BicycleDesign.horizontalPadding else BicycleDesign.controlGap)) }
             addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams((dp(BicycleDesign.settingsIconSize)*1.2f).toInt(),(dp(BicycleDesign.settingsIconSize)*1.2f).toInt()))
             addView(BicycleComponents.text(context,themes,"/").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.headingSp;BicycleComponents.bindTheme(this,themes) { setTextColor(it.primary) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
