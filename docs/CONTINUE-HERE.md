@@ -1,3 +1,7 @@
+# Nach Build157 noch unveröffentlicht
+
+Menü: Strecken/Nachrichten, bodyTypeface14sp und Icons24dp wie Rahmen-Dropdowns; Gruppenüberschriften erhalten. Flat: Hauptgruppen4dp seitlich/16dp innen, Standard-Sticky-Köpfe4dp seitlich und Inhalt16dp eingerückt; Glow unverändert. Trackdarstellung: vier originale Rahmen-Accordions in gemeinsamem SECONDARY-Kasten mit3Trennern, ohne Einzelrahmen/Zwischenmargins; Schalter/IDs/Callbacks erhalten. Radwege/Radrouten separat. [Details](settings-boxes.md). Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.112 / Build157
 
 Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen Raw-Direktdownload geprüft, bytegleich zum Actions-Artefakt. Veröffentlichung29dd0ab.

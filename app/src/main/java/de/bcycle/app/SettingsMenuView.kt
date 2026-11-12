@@ -91,11 +91,11 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         if(action.icon!=0) addView(ImageView(context).apply {
             setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-        },LayoutParams((dp(BicycleDesign.iconSize)*(if(compact) .8f else 1f)).toInt(),(dp(BicycleDesign.iconSize)*(if(compact) .8f else 1f)).toInt()))
+        },LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
         addView(BicycleComponents.text(context,themes,label).apply {
             gravity=Gravity.CENTER_VERTICAL
             textSize=if(compact || advanced) BicycleDesign.bodySp else BicycleDesign.sectionTitleSp
-            typeface=if(compact) BicycleDesign.compactTypeface else if(advanced) BicycleDesign.bodyTypeface else BicycleDesign.narrowTypeface(context)
+            typeface=if(compact || advanced) BicycleDesign.bodyTypeface else BicycleDesign.narrowTypeface(context)
         },LayoutParams(0,-2,1f).apply { marginStart=dp(if(compact) BicycleDesign.smallGap else BicycleDesign.verticalPadding) })
 
     }
@@ -103,11 +103,19 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         val group=LinearLayout(context).apply {
             orientation=VERTICAL;tag="settings_box_$title"
             setPadding(dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap))
-            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.tertiary) }
+            BicycleComponents.bindTheme(this,themes) {
+                background=BicycleComponents.controlBackground(context,it,it.tertiary)
+                val pad=dp(if(BicycleAppearance.flat(context)) BicycleDesign.horizontalPadding else BicycleDesign.controlGap)
+                setPadding(pad,pad,pad,pad)
+                (layoutParams as? LayoutParams)?.let { params ->
+                    val gap=dp(if(BicycleAppearance.flat(context)) BicycleDesign.smallGap else BicycleDesign.controlGap)
+                    if(params.leftMargin!=gap || params.rightMargin!=gap) { params.leftMargin=gap;params.rightMargin=gap;layoutParams=params }
+                }
+            }
         }
         group.addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false;minimumHeight=dp(BicycleDesign.settingsRowHeight)
-            setPadding(dp(BicycleDesign.horizontalPadding),0,0,dp(BicycleDesign.controlGap))
+            BicycleComponents.bindTheme(this,themes) { setPadding(dp(BicycleDesign.horizontalPadding),0,0,dp(if(BicycleAppearance.flat(context)) BicycleDesign.horizontalPadding else BicycleDesign.controlGap)) }
             addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams((dp(BicycleDesign.settingsIconSize)*1.2f).toInt(),(dp(BicycleDesign.settingsIconSize)*1.2f).toInt()))
             addView(BicycleComponents.text(context,themes,"/").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.headingSp;BicycleComponents.bindTheme(this,themes) { setTextColor(it.primary) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
             addView(BicycleComponents.text(context,themes,title).apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.headingSp;isAccessibilityHeading=true },LayoutParams(0,-2,1f))
@@ -119,6 +127,8 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             actions.forEachIndexed { i,action ->
                 if(i>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,dp(BicycleDesign.controlBorder)).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
                 val label=when(action) {
+                    SettingsAction.ROUTES -> context.getString(R.string.settings_group_routes)
+                    SettingsAction.NOTIFICATIONS -> context.getString(R.string.settings_group_messages)
                     SettingsAction.STATISTICS -> context.getString(R.string.settings_group_statistics)
                     SettingsAction.HRV_MEASUREMENT -> context.getString(R.string.settings_group_measurement)
                     SettingsAction.HRV_ANALYSIS -> context.getString(R.string.settings_group_analysis)
@@ -133,7 +143,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             addView(column(left,"left"),LayoutParams(0,if(title=="HRV") -2 else -1,1f))
             addView(column(right,"right"),LayoutParams(0,if(title=="HRV") -2 else -1,1f).apply { gravity=Gravity.TOP;marginStart=dp(BicycleDesign.controlGap) })
         },LayoutParams(-1,-2))
-        addView(group,LayoutParams(-1,-2).apply { val gap=dp(BicycleDesign.controlGap);setMargins(gap,gap,gap,gap) })
+        addView(group,LayoutParams(-1,-2).apply { val gap=dp(BicycleDesign.controlGap);val side=dp(if(BicycleAppearance.flat(context)) BicycleDesign.smallGap else BicycleDesign.controlGap);setMargins(side,gap,side,gap) })
     }
 
 }

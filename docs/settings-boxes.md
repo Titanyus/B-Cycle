@@ -13,3 +13,11 @@ SettingsBoxesTest prüft beide Designs bei288/360/480dp, alle13 Ziele, gleiche S
 Ein zusätzlicher Lauf älterer Sticky-Tests meldete3 Fehler: ein Test erwartet noch ein altes selektiertes Kachel-Drawable, ein anderer den früher separaten Strecken-Aufzeichnungskopf, der dritte eine ältere Kontrollfüllfarbe. Diese Assertions wurden nicht als Teil dieser Darstellungsänderung umgeschrieben; keine grüne Gesamtsuite behauptet. Protokoll settings-boxes-glow-border-tests.log. Geräteprüfung von Rahmen und Aufteilung in der nächsten APK bleibt erforderlich.
 
 Nachanpassung: Chevrons entfernt, Überschriften16dp und Menüzeilen8dp eingerückt. Innen-/Außenradius identisch6dp. HRV-Messung heart-pulse, Auswertung chart-line, Einstellungen wrench; Zahnradrollen systemweit wrench. Gezielte Prüfung: settings-menu-refine-tests.log.
+
+## Neue Anpassung nach Build157
+
+Menülabels auf Hauptseite „Strecken“ und „Nachrichten“. Menüzeilen verwenden dieselbe bodyTypeface/choiceSp14 und iconSize24dp wie Rahmen-Dropdown-Köpfe; Gruppenüberschriften unverändert. Flat: gerahmte Hauptgruppen4dp seitlich außen/16dp innen; Standard-Sticky-Abschnitte4dp seitlich und Inhalt16dp vom Kopf-/Kastenrand entfernt. Glow-Abstände unverändert. Themewechsel berücksichtigt Einzüge und Zentrierung.
+
+Aktiver Track und User Track1–3 teilen eine SECONDARY-Rahmenfläche mit drei horizontalen Trennern. Originale BicycleFrameDropdown-Köpfe/Inhalte/Schalter und IDs bleiben erhalten; einzelne Dropdownflächen ohne eigenen Rahmen und ohne zusätzliche Zwischenmargins. Radwege/Radrouten separat unverändert.
+
+Prüfung: settings-grouped-track-final-tests.log für Menü/Navigation/Trackwerte/Sticky. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte bereits bei nativer Zoominitialisierung mit „Zoom limit is out of range“ (settings-grouped-track-tests.log); keine grüne Gesamtsuite behauptet.

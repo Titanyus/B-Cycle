@@ -33,7 +33,9 @@ class SettingsBoxesTest {
                 assertNull(page.findViewWithTag<View>("hrv_open_measurement"))
                 for(title in listOf("Bike","Training","HRV")) {
                     val box=page.findViewWithTag<LinearLayout>("settings_box_$title")
-                    assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),box.paddingTop)
+                    assertEquals(BicycleDesign.dp(a,if(flat) BicycleDesign.horizontalPadding else BicycleDesign.controlGap),box.paddingTop)
+                    val margins=box.layoutParams as ViewGroup.MarginLayoutParams
+                    assertEquals(BicycleDesign.dp(a,if(flat) BicycleDesign.smallGap else BicycleDesign.controlGap),margins.leftMargin)
                     assertEquals(themes.active.tokens.tertiary,(box.background as GradientDrawable).color!!.defaultColor)
                     val left=page.findViewWithTag<LinearLayout>("settings_column_${title}_left")
                     val right=page.findViewWithTag<LinearLayout>("settings_column_${title}_right")

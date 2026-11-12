@@ -33,6 +33,8 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 
 - Einstellungen-Hauptseite ab12.11.2026: drei gerahmte TERTIARY-Kästen Bike/Training/HRV, innen immer zwei SECONDARY-Spalten mit Rahmen/Trennern (links Aktionen, rechts Einstellungen; Training rechts vorerst leer). Markenbild inkl. Build behalten, Erweitert separat. Training-Symbol biceps-flexed. Glow-Sticky-Kästen zusätzlich mit normalem 2-dp-Rahmen, auch beim Pinnen; Flat unverändert. [Details](docs/settings-boxes.md).
 
+- Nach Build157: Hauptmenülabels Strecken/Nachrichten; Menüzeilen mit bodyTypeface/choiceSp und iconSize wie Rahmen-Dropdowns. Flat-Gruppen4dp Außeninset/16dp innen, auch seitliche Standard-Sticky-Geometrie4dp+16dp; Glow-Abstände erhalten. Vier Track-Accordions teilen einen SECONDARY-Rahmen mit Trennern, ohne Einzelrahmen/Zwischenmargins. Radwege/Radrouten bleiben separat.
+
 ## Profile, Dashboard und Karten
 
 - Dashboard-Effizienz09.11.2026: nur der Darstellungsblock ruht hinter voll deckenden Dialogseiten; kompakte Overlays allein lassen sichtbare Werte/Graphen weiterlaufen. Status/Fehler/Fahrtabschluss/Summary und sichtbare Verwaltungsseiten weiter versorgen; nach tatsächlichem Show/Dismiss aktuellen Stand sofort anzeigen. Exakten einzelnen GraphDemand-Snapshot nach Template/kompletter Graphkonfiguration wiederverwenden. Kachelcache an eigene Eingangswerte plus Quelle/Referenz/Trend/Sichtbarkeit/Graph/Locale binden; Training-/Graphbindings bei identischen Snapshots überspringen, Designwechsel invalidiert Trainingsfarben. Sensor-/Aufzeichnungs-/WakeLock-/GL-Lebenszyklus unverändert. [Nachweis](docs/dashboard-efficiency-2026-11-09.md).

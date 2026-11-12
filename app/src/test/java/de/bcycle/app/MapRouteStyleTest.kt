@@ -78,6 +78,12 @@ class MapRouteStyleTest {
             val view=MapLineStyleView(a,prefs,themes,DialogNavigation()) { changes++ };a.setContentView(view)
             for(kind in MapLineKind.entries.take(4)) assertEquals(MapRouteStyles.read(prefs,kind).color,
                 view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}").leadingIconColor)
+            val box=view.findViewWithTag<android.widget.LinearLayout>("map_track_style_group")
+            assertEquals(7,box.childCount)
+            for(kind in MapLineKind.entries.take(4)) {
+                val frame=view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}")
+                assertSame(box,frame.parent);assertTrue(frame.grouped);assertNull(frame.background)
+            }
             val body=view.findViewWithTag<View>("map_line_body_recorded")
             assertEquals(View.GONE,body.visibility)
             view.findViewWithTag<View>("map_line_toggle_recorded").performClick();assertEquals(View.VISIBLE,body.visibility)

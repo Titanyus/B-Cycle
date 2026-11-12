@@ -33,6 +33,8 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         val pad=BicycleDesign.dp(context,BicycleDesign.dropdownFramePadding)
         setPadding(pad,BicycleDesign.dp(context,BicycleDesign.dropdownFrameHeaderGap),pad,pad)
     }
+    var grouped=false
+        set(value) { field=value;if(value) background=null }
     private val arrow=RotateDrawable().apply { fromDegrees=0f;toDegrees=180f }
     private val row=LinearLayout(context)
     private var trailingControl:View?=null
@@ -60,7 +62,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         trailing?.let(::setTrailing)
         addView(row,LayoutParams(-1,-2));addView(content,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(this,themes) { tokens ->
-            background=RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0xffffff) or 0x26000000),
+            background=if(grouped) null else RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0xffffff) or 0x26000000),
                 BicycleComponents.controlBackground(context,tokens,BicycleComponents.controlSurface(context,tokens)),GradientDrawable().apply {
                     setColor(Color.WHITE);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
                 })

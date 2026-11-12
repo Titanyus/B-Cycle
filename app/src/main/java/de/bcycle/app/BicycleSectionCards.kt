@@ -36,6 +36,10 @@ internal object BicycleSectionCards {
                 if(body!=null && state.body!=null) margins(body,state.body)
                 state.glow=false
             }
+            val inset=BicycleDesign.dp(header.context,BicycleDesign.smallGap)
+            val inner=BicycleDesign.dp(header.context,BicycleDesign.horizontalPadding)
+            margins(header,Margins(inset-parent.paddingLeft,inset-parent.paddingRight,p.topMargin,p.bottomMargin))
+            if(body!=null && b!=null) margins(body,Margins(inset+inner-parent.paddingLeft,inset+inner-parent.paddingRight,b.topMargin,b.bottomMargin))
             return false
         }
         if(state==null || !state.glow) {
