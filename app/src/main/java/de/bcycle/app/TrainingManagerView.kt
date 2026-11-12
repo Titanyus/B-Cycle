@@ -277,6 +277,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         badgeColor=when(automatic) { TrainingIntensity.HARD->TrainingZoneColors.red;TrainingIntensity.EASY->TrainingZoneColors.green;TrainingIntensity.SWEET_SPOT->TrainingZoneColors.yellow;null->null }
         hardness.text=automatic?.let { context.getString(it.title) }.orEmpty()
         hardness.visibility=if(automatic==null) GONE else VISIBLE
+        variant.visibility=if(canVary) VISIBLE else GONE
         variant.text=choice.label
         variant.contentDescription=context.getString(R.string.training_variant_description,choice.label)
         variant.stateDescription=if(canVary) context.getString(R.string.training_variant_cycle) else context.getString(R.string.training_variant_unavailable)

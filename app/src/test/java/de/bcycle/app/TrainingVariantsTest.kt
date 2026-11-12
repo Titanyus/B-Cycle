@@ -146,15 +146,11 @@ class TrainingVariantsTest {
             assertEquals("Ext",reopened.findViewWithTag<Button>("training_variant").text.toString())
             reopened.render(listOf(base.copy(steps=base.steps.take(3)+base.steps.last())));layout(reopened)
             val fixed=reopened.findViewWithTag<Button>("training_variant")
-            val fixedList=reopened.findViewWithTag<ListView>("training_list")
-            val fixedBounds=android.graphics.Rect();fixed.getDrawingRect(fixedBounds);fixedList.offsetDescendantRectToMyCoords(fixed,fixedBounds)
-            val previous=opened
-            for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
-                val event=android.view.MotionEvent.obtain(0,10,action,fixedBounds.exactCenterX(),fixedBounds.exactCenterY(),0)
-                try { fixedList.dispatchTouchEvent(event) } finally { event.recycle() }
-            }
-            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
-            assertSame(previous,opened);assertEquals("Std",fixed.text.toString())
+            assertEquals(View.GONE,fixed.visibility)
+            assertFalse(fixed.isClickable)
+            reopened.render(listOf(base));layout(reopened)
+            assertEquals(View.VISIBLE,reopened.findViewWithTag<Button>("training_variant").visibility)
+
         } finally { TrainingVariants.forget(a,setOf(base.id));host.pause().stop().destroy() }
     }
 }
