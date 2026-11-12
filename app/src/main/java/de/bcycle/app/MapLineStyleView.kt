@@ -20,7 +20,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         orientation=VERTICAL;tag="map_line_styles"
         heading?.let { addView(BicycleComponents.contentHeading(context,themes,context.getString(it))) }
         val groupedTracks=kinds==MapLineKind.entries.take(4)
-        val trackBox=if(groupedTracks) BicycleGroupedBox(context,themes).apply {
+        val trackBox=if(groupedTracks) BicycleGroupedBox(context,themes,standalone=true).apply {
             tag="map_track_style_group"
             this@MapLineStyleView.addView(this,LayoutParams(-1,-2))
         } else null

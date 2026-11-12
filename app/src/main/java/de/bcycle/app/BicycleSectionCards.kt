@@ -49,7 +49,7 @@ internal object BicycleSectionCards {
         val gap=BicycleDesign.dp(header.context,BicycleDesign.sectionCardGap)
         val bottom=BicycleDesign.dp(header.context,BicycleDesign.sectionCardBottomPadding)
         margins(header,Margins(inset-parent.paddingLeft,inset-parent.paddingRight,0,if(header.expanded==true) 0 else gap))
-        if(body!=null && b!=null) margins(body,Margins(inset*2-parent.paddingLeft,inset*2-parent.paddingRight,
+        if(body!=null && b!=null) margins(body,Margins(inset+BicycleDesign.dp(header.context,BicycleDesign.horizontalPadding)-parent.paddingLeft,inset+BicycleDesign.dp(header.context,BicycleDesign.horizontalPadding)-parent.paddingRight,
             maxOf(state.body?.top ?: 0,BicycleDesign.dp(header.context,BicycleDesign.sectionContentGap)),bottom+gap))
         return true
     }

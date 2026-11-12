@@ -5,9 +5,10 @@ import android.view.View
 import android.widget.LinearLayout
 
 /** Shared framed list: one surface, standard dropdown gap, centered separators. */
-internal class BicycleGroupedBox(context:Context,private val themes:ThemeManager):LinearLayout(context) {
+internal class BicycleGroupedBox(context:Context,private val themes:ThemeManager,standalone:Boolean=false):LinearLayout(context) {
     init {
         orientation=VERTICAL;clipToOutline=true
+        if(standalone) BicycleComponents.controlSpacing(this)
         val border=BicycleDesign.dp(context,BicycleDesign.controlBorder)
         setPadding(border,border,border,border)
         BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }

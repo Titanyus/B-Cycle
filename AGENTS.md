@@ -37,6 +37,8 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 
 - Gerahmte Listen zentral über BicycleGroupedBox: SECONDARY, Standardrahmen/Rundung,8dp Gesamtzwischenraum mit mittiger2dp-Trennlinie (3dp davor/danach). Für Menüspalten und Trackdarstellung gemeinsam nutzen.
 
+- Nach Build158: Glow-Sticky-Inhalt16dp vom Kastenrand (8dp Außeninset erhalten). Eigenständige BicycleGroupedBox mit standalone=true bekommt normalen8dp-Formularabstand, etwa unter Trackdarstellung; eingebettete Menüspalten ohne Zusatzmargins.
+
 ## Profile, Dashboard und Karten
 
 - Dashboard-Effizienz09.11.2026: nur der Darstellungsblock ruht hinter voll deckenden Dialogseiten; kompakte Overlays allein lassen sichtbare Werte/Graphen weiterlaufen. Status/Fehler/Fahrtabschluss/Summary und sichtbare Verwaltungsseiten weiter versorgen; nach tatsächlichem Show/Dismiss aktuellen Stand sofort anzeigen. Exakten einzelnen GraphDemand-Snapshot nach Template/kompletter Graphkonfiguration wiederverwenden. Kachelcache an eigene Eingangswerte plus Quelle/Referenz/Trend/Sichtbarkeit/Graph/Locale binden; Training-/Graphbindings bei identischen Snapshots überspringen, Designwechsel invalidiert Trainingsfarben. Sensor-/Aufzeichnungs-/WakeLock-/GL-Lebenszyklus unverändert. [Nachweis](docs/dashboard-efficiency-2026-11-09.md).

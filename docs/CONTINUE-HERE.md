@@ -1,3 +1,7 @@
+# Noch unveröffentlicht nach Build158
+
+Glow-Sticky-Inhalt seitlich16dp vom Außenkasten statt8dp (Bildschirm24dp=8außen+16innen), Flat4+16 unverändert. BicycleGroupedBox als eigenständiges Formularfeld verwendet normalen controlGap8dp zur Überschrift/vorherigem Inhalt; Menüspalten unverändert. Trackdarstellung nutzt diesen standalone-Modus, beseitigt fehlenden Abstand unter Überschrift. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.113 / Build158
 
 Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung97aad187.

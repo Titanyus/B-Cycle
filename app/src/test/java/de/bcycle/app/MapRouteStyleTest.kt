@@ -80,6 +80,7 @@ class MapRouteStyleTest {
                 view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}").leadingIconColor)
             val box=view.findViewWithTag<android.widget.LinearLayout>("map_track_style_group")
             assertEquals(7,box.childCount)
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),(box.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
             for(kind in MapLineKind.entries.take(4)) {
                 val frame=view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}")
                 assertSame(box,frame.parent);assertTrue(frame.grouped);assertNull(frame.background)
