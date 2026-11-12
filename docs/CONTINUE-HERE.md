@@ -1,3 +1,7 @@
+# Neue Menüanpassungen nach Build155 (noch unveröffentlicht)
+
+Chevrons aus Einstellungsmenüpunkten entfernt, Gruppenüberschriften16dp eingerückt, Menüzeilen8dp links. Innen-/Außenkästen verwenden denselben zentralen6dp-Radius. HRV: heart-pulse für Messung, chart-line für Auswertung, Einstellungen mit wrench. Bisherige Zahnradrollen Advanced/Work systemweit wrench. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.110 / Build155
 
 Neue Einstellungsaufteilung, Glow-Sticky-Rahmen und zuvor vorbereitete Graphkanten umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher direkter Raw-Download geprüft, bytegleich zum Actions-Artefakt.

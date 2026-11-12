@@ -24,7 +24,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     PROFILE("", BicycleIcon.RiderProfile.resource, R.string.ui_settings_profile),
     DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
     NOTIFICATIONS("", BicycleIcon.Notifications.resource, R.string.notifications_title),
-    HRV("", BicycleIcon.Heart.resource, R.string.hrv_settings_title),
+    HRV("", BicycleIcon.Advanced.resource, R.string.hrv_settings_title),
     MAINTENANCE("", BicycleIcon.Work.resource, R.string.maintenance_title),
     RECOVERY("", titleResource = R.string.ui_settings_recovery),
     GPS_HELP("", titleResource = R.string.ui_settings_gps_help),
@@ -34,8 +34,8 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     FONT_LICENSE("", titleResource = R.string.ui_settings_font_license),
     MAP_LICENSE("", titleResource = R.string.ui_settings_map_license),
     ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title),
-    HRV_ANALYSIS("",BicycleIcon.Heart.resource,titleResource=R.string.hrvt_title),
-    HRV_MEASUREMENT("",BicycleIcon.Heart.resource,titleResource=R.string.hrv_measurement_open),
+    HRV_ANALYSIS("",BicycleIcon.ChartLine.resource,titleResource=R.string.hrvt_title),
+    HRV_MEASUREMENT("",BicycleIcon.HeartPulse.resource,titleResource=R.string.hrv_measurement_open),
     TRAINING("",BicycleIcon.Training.resource,titleResource=R.string.training_title);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
@@ -85,7 +85,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     private fun menuRow(action:SettingsAction,label:String,compact:Boolean):LinearLayout = BicycleComponents.listRow(context,themes).apply {
         tag="settings_${action.name}";contentDescription=label;isClickable=true;isFocusable=true
         minimumHeight=dp(if(compact || advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)
-        if(compact) setPadding(dp(BicycleDesign.smallGap),dp(BicycleDesign.settingsRowVerticalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.settingsRowVerticalPadding))
+        if(compact) setPadding(dp(BicycleDesign.controlGap),dp(BicycleDesign.settingsRowVerticalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.settingsRowVerticalPadding))
         setOnClickListener { selected(action) }
         if(action.icon!=0) addView(ImageView(context).apply {
             setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
@@ -96,10 +96,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             textSize=if(compact || advanced) BicycleDesign.bodySp else BicycleDesign.sectionTitleSp
             typeface=if(compact) BicycleDesign.compactTypeface else if(advanced) BicycleDesign.bodyTypeface else BicycleDesign.narrowTypeface(context)
         },LayoutParams(0,-2,1f).apply { marginStart=dp(if(compact) BicycleDesign.smallGap else BicycleDesign.verticalPadding) })
-        addView(ImageView(context).apply {
-            BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
-            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-        },LayoutParams(dp(if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize),dp(if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize)))
+
     }
     private fun addGroup(title:String,icon:BicycleIcon,left:List<SettingsAction>,right:List<SettingsAction>) {
         val group=LinearLayout(context).apply {
@@ -109,6 +106,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         }
         group.addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(BicycleDesign.settingsRowHeight)
+            setPadding(dp(BicycleDesign.horizontalPadding),0,0,0)
             addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(dp(BicycleDesign.settingsIconSize),dp(BicycleDesign.settingsIconSize)))
             addView(BicycleComponents.text(context,themes,"/").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;BicycleComponents.bindTheme(this,themes) { setTextColor(it.primary) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
             addView(BicycleComponents.text(context,themes,title).apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;isAccessibilityHeading=true },LayoutParams(0,-2,1f))
