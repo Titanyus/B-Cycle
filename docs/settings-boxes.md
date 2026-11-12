@@ -31,3 +31,7 @@ Sensor-Dropdowns teilen eine Box unter kleiner Überschrift Sensoren; bisherige 
 Radwege/Radrouten unter gemeinsamer Überschrift Radwege mit geteilter Box; Sensor-/Radweg-Schalter und Dropdowns unabhängig. Backup: Sichern3/Wiederherstellen3/Importieren2/Cloud5 jeweils eine gemeinsame Box, sämtliche Originalframes und IDs/Installationen erhalten. Keine Upload-/Account-/Dateilogik geändert.
 
 Tests: explizite Gruppenanzahlen und gemeinsame Rahmen, Sensorzuordnung/Entfernen samt ausgeblendeten Trennern, Dienstschalter/Expansion, Intervals-/Strava-/Dreeve-Formulare und Importaktionen sowie Track-/Cycling-Persistenz in grouped-settings-expansion-final-tests.log. Breiterer Zusatzlauf mit3Fehlern im alten FIT-Testtag, vollständigem Prefs-Vergleich und fehlender Importbutton-contentDescription; keine Gesamtsuite behauptet.
+
+## Bildhintergründe
+
+Aus Nutzer-ZIP gelieferte unveränderte PNGs: Triathlet in Aeroposition für Bike, anderer Rennradfahrer für Training. SettingsGroupBackground zeichnet sie proportional auf volle Kastenbreite, oben ausgerichtet und gerundet beschnitten; Menüflächen und Rahmen erhalten. Bitmap einmal je Kasten dekodiert, Geometrie nur bei Boundsänderung berechnet. Alle3Kopfbereiche35% höher. Acht Menü-/Navigationsmethoden erfolgreich (settings-group-image-tests.log), native Glow-Vorschau visuell geprüft. HRV ohne Bild, Markenbild/Build erhalten.

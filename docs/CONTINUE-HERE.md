@@ -1,6 +1,6 @@
-# Aktueller Bildauftrag (teilweise umgesetzt)
+# Aktueller Auftrag: Bilder und neue APK
 
-Überschriftenbereiche aller3Hauptgruppen35% höher (54dp→rund73dp), Breite/Schrift/Icon unverändert. Nutzer wünscht erstes Inline-Bild als vollbreiten Bike-Kastenhintergrund, zweites für Training, oben ausgerichtet; HRV ohne Bild. Inline-Bilder sichtbar im Chat, aber keine neuen lokalen Dateien/Dateireferenzen in dieser Umgebung gefunden; echte Bilddateien werden noch benötigt. Keine Bilder ersetzt oder nachgebaut.
+ZIP geliefert, beide Original-PNGs übernommen: Aeroposition für Bike, Rennradfahrer für Training; HRV unverändert. SettingsGroupBackground zeichnet Bilder proportional in voller Kastenbreite oben ausgerichtet, mit Rundungsclip/normalem Rahmen; vorhandene SECONDARY-Menüboxen bleiben. Alle3Kopfbereiche35% höher. APK beauftragt, wird nach gezielter Prüfung erstellt. Bisherige unveröffentlichte Gruppierungen/PRIMARY-Footer/Glow16dp mitnehmen.
 
 # Weitere Änderung noch unveröffentlicht
 

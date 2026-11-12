@@ -100,11 +100,16 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
 
     }
     private fun addGroup(title:String,icon:BicycleIcon,left:List<SettingsAction>,right:List<SettingsAction>) {
+        val image=when(title) {
+            "Bike" -> SettingsGroupBackground(context,R.drawable.settings_bike_background)
+            context.getString(R.string.training_title) -> SettingsGroupBackground(context,R.drawable.settings_training_background)
+            else -> null
+        }
         val group=LinearLayout(context).apply {
             orientation=VERTICAL;tag="settings_box_$title"
             setPadding(dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap))
             BicycleComponents.bindTheme(this,themes) {
-                background=BicycleComponents.controlBackground(context,it,it.tertiary)
+                background=image?.apply { update(it) } ?: BicycleComponents.controlBackground(context,it,it.tertiary)
                 val pad=dp(if(BicycleAppearance.flat(context)) BicycleDesign.horizontalPadding else BicycleDesign.controlGap)
                 setPadding(pad,pad,pad,pad)
                 (layoutParams as? LayoutParams)?.let { params ->
