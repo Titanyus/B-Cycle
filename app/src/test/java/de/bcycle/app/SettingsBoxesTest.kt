@@ -38,12 +38,17 @@ class SettingsBoxesTest {
                     val left=page.findViewWithTag<LinearLayout>("settings_column_${title}_left")
                     val right=page.findViewWithTag<LinearLayout>("settings_column_${title}_right")
                     assertTrue(left.width>0);assertTrue(kotlin.math.abs(left.width-right.width)<=1)
-                    assertEquals(left.height,right.height)
+                    if(title=="HRV") {
+                        assertTrue("width=$width left=${left.height} right=${right.height}",right.height<left.height);assertEquals(left.top,right.top)
+                    } else assertEquals(left.height,right.height)
                     assertTrue(left.right<=right.left)
                     assertEquals(themes.active.tokens.secondary,(left.background as GradientDrawable).color!!.defaultColor)
                     val heading=nodes(box).filterIsInstance<TextView>().single { it.isAccessibilityHeading }
+                    val header=heading.parent as View
+                    val columns=left.parent as View
+                    assertEquals(columns.top/2f,header.top+heading.top+heading.height/2f,1f)
                     assertEquals(BicycleDesign.narrowTypeface(a),heading.typeface)
-                    assertEquals(BicycleDesign.sectionTitleSp,heading.textSize/a.resources.displayMetrics.scaledDensity,.01f)
+                    assertEquals(BicycleDesign.headingSp,heading.textSize/a.resources.displayMetrics.scaledDensity,.01f)
                 }
                 assertEquals(0,page.findViewWithTag<LinearLayout>("settings_column_Training_right").childCount)
                 assertNotNull(page.findViewWithTag<View>("settings_brand_art"));assertNotNull(page.findViewWithTag<View>("settings_build_info"))

@@ -1,3 +1,7 @@
+# Weitere Menüanpassung (noch unveröffentlicht)
+
+Menüzeilen-Icons20% kleiner (nur innerhalb der drei Kästen), Gruppen-Icons20% größer, Gruppentitel mit Hauptheadergröße32sp. Innere Kästen: Menüzeilen transparent auf gerundetem SECONDARY-Hintergrund statt rechteckiger eigener Füllung; Clipping am Kastenoutline. Rahmen/Radien unverändert. HRV-Einstellungen rechts nur eine Menüzeile hoch, oben ausgerichtet; Bike/Training behalten gleich hohe Spalten. Kopfzeile inklusive oberem8dp-Innenabstand zwischen Außenrahmen und Innenkasten vertikal zentriert; Baseline-Ausrichtung ausgeschaltet.
+
 # Zusätzlich noch unveröffentlicht
 
 Bike-Kopf: globale page-Abstandsnormalisierung stieg in ersten settings_box-Container ab und entfernte dessen8dp-Top-Padding. settings_box nun als eigener Inhalt statt Wrapper behandeln; alle Gruppen behalten gleichen Innenabstand.
