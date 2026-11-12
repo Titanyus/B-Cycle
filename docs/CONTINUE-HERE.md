@@ -1,3 +1,7 @@
+# Aktueller Auftrag nach Build157
+
+BicycleGroupedBox als globale Kastenart für Einstellungs-Menüspalten und vier Track-Dropdowns. Zwischen Einträgen insgesamt8dp wie zwischen bisherigen Dropdowns, Trenner2dp mittig mit je3dp Abstand. Sonstige aktuelle unveröffentlichte Änderungen weiter enthalten. Nutzer beauftragt neue APK.
+
 # Nach Build157 noch unveröffentlicht
 
 Menü: Strecken/Nachrichten, bodyTypeface14sp und Icons24dp wie Rahmen-Dropdowns; Gruppenüberschriften erhalten. Flat: Hauptgruppen4dp seitlich/16dp innen, Standard-Sticky-Köpfe4dp seitlich und Inhalt16dp eingerückt; Glow unverändert. Trackdarstellung: vier originale Rahmen-Accordions in gemeinsamem SECONDARY-Kasten mit3Trennern, ohne Einzelrahmen/Zwischenmargins; Schalter/IDs/Callbacks erhalten. Radwege/Radrouten separat. [Details](settings-boxes.md). Keine neue APK beauftragt.

@@ -120,12 +120,9 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             addView(BicycleComponents.text(context,themes,"/").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.headingSp;BicycleComponents.bindTheme(this,themes) { setTextColor(it.primary) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
             addView(BicycleComponents.text(context,themes,title).apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.headingSp;isAccessibilityHeading=true },LayoutParams(0,-2,1f))
         },LayoutParams(-1,-2))
-        fun column(actions:List<SettingsAction>,side:String)=LinearLayout(context).apply {
-            orientation=VERTICAL;tag="settings_column_${title}_$side";clipToOutline=true
-            val border=dp(BicycleDesign.controlBorder);setPadding(border,border,border,border)
-            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }
-            actions.forEachIndexed { i,action ->
-                if(i>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,dp(BicycleDesign.controlBorder)).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
+        fun column(actions:List<SettingsAction>,side:String)=BicycleGroupedBox(context,themes).apply {
+            tag="settings_column_${title}_$side"
+            actions.forEach { action ->
                 val label=when(action) {
                     SettingsAction.ROUTES -> context.getString(R.string.settings_group_routes)
                     SettingsAction.NOTIFICATIONS -> context.getString(R.string.settings_group_messages)
@@ -135,7 +132,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
                     SettingsAction.HRV -> context.getString(R.string.settings_group_hrv_settings)
                     else -> action.label(context)
                 }
-                addView(menuRow(action,label,true),LayoutParams(-1,-2))
+                addEntry(menuRow(action,label,true))
             }
         }
         group.addView(LinearLayout(context).apply {

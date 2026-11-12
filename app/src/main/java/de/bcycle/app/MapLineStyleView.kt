@@ -20,10 +20,8 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         orientation=VERTICAL;tag="map_line_styles"
         heading?.let { addView(BicycleComponents.contentHeading(context,themes,context.getString(it))) }
         val groupedTracks=kinds==MapLineKind.entries.take(4)
-        val trackBox=if(groupedTracks) LinearLayout(context).apply {
-            orientation=VERTICAL;tag="map_track_style_group";clipToOutline=true
-            val border=BicycleDesign.dp(context,BicycleDesign.controlBorder);setPadding(border,border,border,border)
-            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }
+        val trackBox=if(groupedTracks) BicycleGroupedBox(context,themes).apply {
+            tag="map_track_style_group"
             this@MapLineStyleView.addView(this,LayoutParams(-1,-2))
         } else null
         kinds.forEach { kind ->
@@ -93,10 +91,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
             }
             if(trackBox!=null) {
                 frame.grouped=true
-                if(trackBox.childCount>0) trackBox.addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.controlBorder)).apply {
-                    marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap);marginEnd=marginStart
-                })
-                trackBox.addView(frame,LayoutParams(-1,-2).apply { topMargin=0;bottomMargin=0 })
+                trackBox.addEntry(frame)
             } else addView(frame,LayoutParams(-1,-2))
         }
     }

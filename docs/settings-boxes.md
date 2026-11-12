@@ -21,3 +21,5 @@ Menülabels auf Hauptseite „Strecken“ und „Nachrichten“. Menüzeilen ver
 Aktiver Track und User Track1–3 teilen eine SECONDARY-Rahmenfläche mit drei horizontalen Trennern. Originale BicycleFrameDropdown-Köpfe/Inhalte/Schalter und IDs bleiben erhalten; einzelne Dropdownflächen ohne eigenen Rahmen und ohne zusätzliche Zwischenmargins. Radwege/Radrouten separat unverändert.
 
 Prüfung: settings-grouped-track-final-tests.log für Menü/Navigation/Trackwerte/Sticky. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte bereits bei nativer Zoominitialisierung mit „Zoom limit is out of range“ (settings-grouped-track-tests.log); keine grüne Gesamtsuite behauptet.
+
+BicycleGroupedBox vereinheitlicht gerahmte Listen global:8dp Gesamtzwischenraum zwischen Einträgen, davon2dp Linie und je3dp davor/danach, wie bisheriger Dropdown-Abstand. Menüs und Trackgruppe nutzen denselben Container; gruppierte Dropdowns bekommen keine zusätzlichen automatischen Margins. Prüfung grouped-box-spacing-tests.log erfolgreich.
