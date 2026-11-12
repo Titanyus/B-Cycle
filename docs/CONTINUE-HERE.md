@@ -1,10 +1,10 @@
 # Aktueller Stand: APK0.8.111 / Build156
 
-Menüanpassungen einschließlich Einzüge/Icons umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Raw-Direktdownload nach Veröffentlichung noch prüfen.
+Menüanpassungen einschließlich Einzüge/Icons umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft.
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.111-release-156.apk) · [Buildnachweis](build-156.md) · [Änderungen](release-0.8.111.md)
 
-Actions43205213885 erfolgreich aus Quellstand4d2e5691baf5442e0dae411fda4216c9bd290b19, VersionCode181, Android13+. 4463689Bytes; SHA-2566816bf5541e899617c30a8cb0c55d495a98d2c8a3322a4c84496237facf4d81e. Dauerhafte Signatur bestätigt. Direktdownloadnachweis folgt.
+Actions43205213885 erfolgreich aus Quellstand4d2e5691baf5442e0dae411fda4216c9bd290b19, VersionCode181, Android13+. 4463689Bytes; SHA-2566816bf5541e899617c30a8cb0c55d495a98d2c8a3322a4c84496237facf4d81e. Dauerhafte Signatur bestätigt. Direktdownload bytegleich geprüft; Veröffentlichung518982c.
 
 ## Letzte Änderungen
 

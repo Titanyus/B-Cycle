@@ -12,3 +12,7 @@
 Ausschließlich GitHub Actions. Prüfsumme, dauerhafte Update-Signatur, Version, Manifest ohne Debug-/Test-Flags und ZIP-/16KB-Ausrichtung geprüft. Vier VTM-ABIs,28Shader, Bright-JSON/XML/113Sprites sowie Terrain-/Cycling-Attribution erhalten; Kartenressourcen bytegleich zum Quellstand. R8-Mapping und Ressourcen geprüft.
 
 [Änderungen](release-0.8.111.md): Menü ohne Chevrons, Einzüge16/8dp, gleiche Innen-/Außenradien, HRV-Symbole und systemweit wrench statt Zahnrad. Acht gezielte Menü-/Navigationsmethoden erfolgreich (settings-menu-refine-tests.log), Typografie-/Atlas-/Diffprüfungen grün. Keine Gesamtsuite oder Laufzeitmessung. Optische Bestätigung auf dem Gerät bleibt erforderlich.
+
+## Direkter Downloadnachweis
+
+Raw-Download nach Veröffentlichung518982c tatsächlich abgerufen:4463689Bytes, binär identisch zum Actions-Artefakt. SHA-256 `6816bf5541e899617c30a8cb0c55d495a98d2c8a3322a4c84496237facf4d81e`.
