@@ -1,37 +1,20 @@
-# Aktueller Auftrag: Bilder und neue APK
+# Aktueller Stand: APK0.8.114 / Build159
 
-ZIP geliefert, beide Original-PNGs übernommen: Aeroposition für Bike, Rennradfahrer für Training; HRV unverändert. SettingsGroupBackground zeichnet Bilder proportional in voller Kastenbreite oben ausgerichtet, mit Rundungsclip/normalem Rahmen; vorhandene SECONDARY-Menüboxen bleiben. Alle3Kopfbereiche35% höher. APK beauftragt, wird nach gezielter Prüfung erstellt. Bisherige unveröffentlichte Gruppierungen/PRIMARY-Footer/Glow16dp mitnehmen.
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Direktdownload nach Veröffentlichung noch prüfen.
 
-# Weitere Änderung noch unveröffentlicht
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.114-release-159.apk) · [Buildnachweis](build-159.md) · [Änderungen](release-0.8.114.md)
 
-Footer in Flat/Glow wieder durchgehend PRIMARY: zentrale Fachfooter, Dashboard samt Seitenbuttons und Dialog-Buttonleiste. Schatten-/Sichtbarkeitslogik erhalten. Keine neue APK beauftragt.
-
-# Weitere Gruppierungen nach Build158 (noch unveröffentlicht)
-
-BicycleGroupedBox für Sensorliste (kleine Überschrift Sensoren, bestehender Sticky-Sensorabschnitt/Autostart/Suche erhalten), Radwege/Radrouten (Überschrift Radwege) sowie Backup-Gruppen Sichern3/Wiederherstellen3/Importieren2/Cloud5. Originale Frames, Schalter, IDs, Callbacks/Installationen erhalten, Einzelrahmen entfernt. Dynamische Sensortrenner nur zwischen sichtbaren Einträgen; leere Sensorbox samt kleiner Überschrift verborgen. Bereits vorhandene Glow16dp-/Standalone8dp-Korrektur ebenfalls noch unveröffentlicht. Keine neue APK beauftragt.
-
-Prüfung: grouped-settings-expansion-final-tests.log. Zusätzlicher breiterer Lauf grouped-settings-expansion-tests.log meldete3 Fehler (alter bike_fit_settings-Tag fehlt, Vergleich aller Prefs nach Backup-Aufklappen, fehlende contentDescription des HRV4-Importbuttons); keine grüne Gesamtsuite behaupten. [Details](settings-boxes.md).
-
-# Noch unveröffentlicht nach Build158
-
-Glow-Sticky-Inhalt seitlich16dp vom Außenkasten statt8dp (Bildschirm24dp=8außen+16innen), Flat4+16 unverändert. BicycleGroupedBox als eigenständiges Formularfeld verwendet normalen controlGap8dp zur Überschrift/vorherigem Inhalt; Menüspalten unverändert. Trackdarstellung nutzt diesen standalone-Modus, beseitigt fehlenden Abstand unter Überschrift. Keine neue APK beauftragt.
-
-# Aktueller Stand: APK0.8.113 / Build158
-
-Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung97aad187.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.113-release-158.apk) · [Buildnachweis](build-158.md) · [Änderungen](release-0.8.113.md)
-
-Actions43281768608 aus Quellstand2e56c705f2c883727d5bd8396b85d5bb87bf7ebd, VersionCode183, Android13+. 4463845Bytes; SHA-256d3130f442cd44916fba2fc3640fdd2542a9776a73f587ed3402b70906ce65d98. Dauerhafte Signatur bestätigt.
+Actions43293374243 aus Quellstanda058ed2429c6fc7da1b65ea08c63f5f20b407d6f, VersionCode184, Android13+. 7129637Bytes; SHA-256c532bef15f069fb1e1bf32903365cf700f40f896585295d410aef16ad52d3404. Dauerhafte Signatur bestätigt.
 
 ## Letzte Änderungen
 
-- Menülabels „Strecken“ und „Nachrichten“; Menüschrift und Icons wie Rahmen-Dropdowns.
-- Flat:4dp seitlicher Außenabstand und16dp Innenabstand, Glow unverändert.
-- Vier Track-Dropdowns als gemeinsamer gerahmter Kasten, alle Schalter und Einstellungen erhalten.
-- Globale Kastenart BicycleGroupedBox mit8dp Zwischenraum:3dp Abstand,2dp Trennlinie,3dp Abstand.
+- Bike und Training mit den gelieferten Originalbildern als vollbreiten, oben ausgerichteten Kastenhintergründen.
+- Überschriftenbereiche aller drei Einstellungskästen35% höher; HRV weiterhin ohne Bild.
+- Sensoren, Radwege/Radrouten und Backup-Gruppen Sichern/Wiederherstellen/Importieren/Cloud in gemeinsamen Boxen.
+- Glow-Sticky-Innenabstand16dp und Standardabstand unter Trackdarstellung.
+- Footer in Flat und Glow wieder durchgehend PRIMARY.
 
-Gezielte Menü-/Navigations-/Trackmethoden erfolgreich, settings-grouped-track-final-tests.log und grouped-box-spacing-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. BicycleGroupedBox wird von Menüspalten und Trackgruppe gemeinsam genutzt. Radwege/Radrouten bleiben separat. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte vor UI-Prüfung an nativer Zoominitialisierung; Details settings-boxes.md.
+Gezielte Menü-/Navigations-/Trackmethoden erfolgreich, settings-group-image-tests.log sowie grouped-settings-expansion-final-tests.log, glow-box-spacing-tests.log und footer-primary-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. BicycleGroupedBox jetzt auch für Sensoren, Radwege/Radrouten und Backup-Gruppen. Native Bildvorschau geprüft; Original-PNGs aus ZIP unverändert übernommen. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte vor UI-Prüfung an nativer Zoominitialisierung; Details settings-boxes.md.
 
 Vorherige Änderungen aus Build155/156 weiter enthalten: drei zweispaltige TERTIARY/SECONDARY-Kästen, Markenbild/Build, biceps-flexed, wrench, keine Chevrons, Einzüge16/8dp; Glow-Sticky-Kontur und Graphen bis zum Rand. [Details](settings-boxes.md).
 
