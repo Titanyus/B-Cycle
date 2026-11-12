@@ -1,10 +1,10 @@
 # Aktueller Stand: APK0.8.110 / Build155
 
-Neue Einstellungsaufteilung, Glow-Sticky-Rahmen und zuvor vorbereitete Graphkanten umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen direkten Download nach Veröffentlichung noch abgleichen.
+Neue Einstellungsaufteilung, Glow-Sticky-Rahmen und zuvor vorbereitete Graphkanten umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher direkter Raw-Download geprüft, bytegleich zum Actions-Artefakt.
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.110-release-155.apk) · [Buildnachweis](build-155.md) · [Änderungen](release-0.8.110.md)
 
-Actions43202153928 erfolgreich aus Quellstand8b821fb20bd84f1bff1da9735b558372cf3535ef, VersionCode180, Android13+. 4462661Bytes; SHA-256123d5e8f9c3d22a2cb28c1053e9896d0237793209360acd255637c5eea565c3e. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt geprüft, Raw-Nachweis folgt.
+Actions43202153928 erfolgreich aus Quellstand8b821fb20bd84f1bff1da9735b558372cf3535ef, VersionCode180, Android13+. 4462661Bytes; SHA-256123d5e8f9c3d22a2cb28c1053e9896d0237793209360acd255637c5eea565c3e. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt und Raw-Direktdownload bytegleich geprüft; Veröffentlichung8957741.
 
 ## Letzte Änderungen
 

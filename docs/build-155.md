@@ -12,3 +12,7 @@
 Optimierter Release ausschließlich GitHub Actions. CI-Prüfsumme, dauerhafte Update-Signatur, Version, Manifest ohne Debug-/Test-Flags und ZIP-/16KB-Ausrichtung geprüft. Vier VTM-ABIs,28Shader, Bright-JSON/XML/113Sprites und Terrain-/Cycling-Attribution erhalten; Kartendaten bytegleich zum Quellstand. R8-Mapping und Ressourcen auf wesentliche bisherige Pfade und neue Menütexte geprüft.
 
 [Änderungen](release-0.8.110.md): neue zweispaltige Einstellungsgruppen, biceps-flexed, Glow-Sticky-Rahmen und Graphen bis zum Rand. Zehn gezielte Menü-/Navigations-/Sticky-Methoden erfolgreich (settings-boxes-release-tests.log), vorherige drei Graphmethoden erfolgreich; zentrale Prüfungen grün. Keine Gesamtsuite oder Laufzeitmessung. [Prüfgrenzen](settings-boxes.md). Sichtprüfung auf dem Gerät bleibt erforderlich.
+
+## Direkter Downloadnachweis
+
+Tatsächlichen Raw-Download nach Veröffentlichung8957741 abgerufen:4462661Bytes, binär identisch zum Actions-Artefakt. SHA-256 `123d5e8f9c3d22a2cb28c1053e9896d0237793209360acd255637c5eea565c3e`.
