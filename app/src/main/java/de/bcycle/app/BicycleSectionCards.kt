@@ -71,6 +71,12 @@ internal object BicycleSectionCards {
                         if(header.visibility!=View.VISIBLE || header.expanded==null) continue
                         val bottom=header.cardContent?.takeIf { it.visibility==View.VISIBLE }?.let { it.bottom+BicycleDesign.dp(root.context,BicycleDesign.sectionCardBottomPadding) } ?: header.bottom
                         canvas.drawRoundRect(header.left.toFloat(),header.top.toFloat(),header.right.toFloat(),bottom.toFloat(),radius,radius,paint)
+                        val stroke=BicycleDesign.dp(root.context,BicycleDesign.controlBorder).toFloat()
+                        paint.style=Paint.Style.STROKE;paint.strokeWidth=stroke
+                        paint.color=BicycleComponents.sectionRuleColor(tokens)
+                        val inset=stroke/2f
+                        canvas.drawRoundRect(header.left+inset,header.top+inset,header.right-inset,bottom-inset,radius-inset,radius-inset,paint)
+                        paint.style=Paint.Style.FILL;paint.color=tokens.tertiary
                     }
                 }
                 override fun setAlpha(alpha:Int) = Unit

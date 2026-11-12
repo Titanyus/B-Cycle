@@ -75,6 +75,10 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
                 canvas.clipRect(bounds)
                 card.set(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),bounds.bottom+cardJoinExtension)
                 canvas.drawRoundRect(card,radius,radius,fill)
+                val stroke=BicycleDesign.dp(context,BicycleDesign.controlBorder).toFloat()
+                rule.style=android.graphics.Paint.Style.STROKE;rule.strokeWidth=stroke;rule.isAntiAlias=true
+                card.inset(stroke/2f,stroke/2f)
+                canvas.drawRoundRect(card,radius-stroke/2f,radius-stroke/2f,rule)
                 canvas.restoreToCount(saved)
             }
         }.apply { setColor(tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
