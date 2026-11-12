@@ -332,12 +332,12 @@ class MainActivity : Activity() {
                 imageTintList = android.content.res.ColorStateList.valueOf(tokens.foreground)
                 backgroundTintList = null
                 background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.primary)
+                    setColor(tokens.tertiary)
                 }
             }
         }, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight), BicycleDesign.dashboardToolbarActionWeight))
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight+BicycleDesign.dashboardRecordCapHeight), BicycleDesign.dashboardToolbarMainWeight))
-        toolbar.addView(toolbarButton("☰", ThemeRole.PRIMARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight), BicycleDesign.dashboardToolbarActionWeight))
+        toolbar.addView(toolbarButton("☰", ThemeRole.TERTIARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight), BicycleDesign.dashboardToolbarActionWeight))
         root.addView(toolbar,LinearLayout.LayoutParams(-1,-2).apply { topMargin=-dp(BicycleDesign.dashboardRecordCapHeight) })
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->

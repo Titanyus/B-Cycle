@@ -1,3 +1,7 @@
+# Nach Build159 noch unveröffentlicht
+
+Nutzerkorrektur: Dashboard-Footer samt Seitenbuttons wieder TERTIARY wie vor PRIMARY-Änderung. Einstellungs-/Fachfooter bleiben PRIMARY in Flat/Glow; zentraler dashboard-Parameter trennt Rollen. Dashboard-Schattenlogik und Aufnahmebutton unverändert. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.114 / Build159
 
 Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung32da5eaa. Beide Originalbilder im APK auf identische Pixel geprüft.
