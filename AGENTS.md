@@ -31,6 +31,8 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Hauptheader auch in Glow einfarbig in ihrer bisherigen Theme-Rolle, ohne Chromatic-Kontur/Glow/Verlauf. Chromatic-Stil auch aus Eingaben, aktiven Auswahlen, Schaltern und Spezialbuttons entfernt. Wiederverwendbarer Originalsnapshot inkl. Berechnungsverfahren/Offline-Designer unter docs/archive/chromatic-glow-2026-11-04/README.md.
 - UI-Typografie und Atlas: `python3 scripts/check-ui-typography.py`, bei Tokenänderungen `python3 scripts/build-ui-catalog.py`, anschließend `--check`.
 
+- Einstellungen-Hauptseite ab12.11.2026: drei gerahmte TERTIARY-Kästen Bike/Training/HRV, innen immer zwei SECONDARY-Spalten mit Rahmen/Trennern (links Aktionen, rechts Einstellungen; Training rechts vorerst leer). Markenbild inkl. Build behalten, Erweitert separat. Training-Symbol biceps-flexed. Glow-Sticky-Kästen zusätzlich mit normalem 2-dp-Rahmen, auch beim Pinnen; Flat unverändert. [Details](docs/settings-boxes.md).
+
 ## Profile, Dashboard und Karten
 
 - Dashboard-Effizienz09.11.2026: nur der Darstellungsblock ruht hinter voll deckenden Dialogseiten; kompakte Overlays allein lassen sichtbare Werte/Graphen weiterlaufen. Status/Fehler/Fahrtabschluss/Summary und sichtbare Verwaltungsseiten weiter versorgen; nach tatsächlichem Show/Dismiss aktuellen Stand sofort anzeigen. Exakten einzelnen GraphDemand-Snapshot nach Template/kompletter Graphkonfiguration wiederverwenden. Kachelcache an eigene Eingangswerte plus Quelle/Referenz/Trend/Sichtbarkeit/Graph/Locale binden; Training-/Graphbindings bei identischen Snapshots überspringen, Designwechsel invalidiert Trainingsfarben. Sensor-/Aufzeichnungs-/WakeLock-/GL-Lebenszyklus unverändert. [Nachweis](docs/dashboard-efficiency-2026-11-09.md).

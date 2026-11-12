@@ -843,4 +843,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_text_country">Länder und Regionen</string>
     <string name="map_text_continent">Kontinente</string>
     <string name="map_text_other">Weitere Ortsbeschriftungen</string>
+    <string name="settings_group_statistics">Statistik</string>
+    <string name="settings_group_measurement">Messung</string>
+    <string name="settings_group_analysis">Auswertung</string>
+    <string name="settings_group_hrv_settings">Einstellungen &amp; Tagesbefinden</string>
 </resources>

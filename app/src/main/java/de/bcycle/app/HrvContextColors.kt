@@ -5,7 +5,7 @@ import kotlin.math.roundToInt
 
 internal enum class HrvContextMode(val label:Int,val icon:BicycleIcon) {
     STANDARD(R.string.hrvc_standard,BicycleIcon.Distance),WELLBEING(R.string.hrvc_wellbeing,BicycleIcon.Wellbeing),
-    TRAINING(R.string.hrvc_training,BicycleIcon.Bikes),
+    TRAINING(R.string.hrvc_training,BicycleIcon.Training),
     SLEEP(R.string.hrvc_sleep,BicycleIcon.Sleep),ENERGY(R.string.hrvc_energy,BicycleIcon.Energy),
     SORENESS(R.string.hrvc_soreness,BicycleIcon.Soreness)
 }

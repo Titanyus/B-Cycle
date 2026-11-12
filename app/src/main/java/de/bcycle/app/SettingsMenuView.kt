@@ -36,7 +36,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title),
     HRV_ANALYSIS("",BicycleIcon.Heart.resource,titleResource=R.string.hrvt_title),
     HRV_MEASUREMENT("",BicycleIcon.Heart.resource,titleResource=R.string.hrv_measurement_open),
-    TRAINING("",BicycleIcon.Power.resource,titleResource=R.string.training_title);
+    TRAINING("",BicycleIcon.Training.resource,titleResource=R.string.training_title);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
@@ -47,38 +47,18 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     init {
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-        if(!advanced) addView(FrameLayout(context).apply {
-            addView(BicycleComponents.specialFilled(context,themes,context.getString(R.string.hrv_measurement_open)) {
-                selected(SettingsAction.HRV_MEASUREMENT)
-            }.apply {
-                tag="hrv_open_measurement";contentDescription=text
-                compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.controlGap)
-                BicycleComponents.bindTheme(this,themes) { _ ->
-                    setCompoundDrawablesRelativeWithIntrinsicBounds(BicycleIcons.drawable(context,BicycleIcon.Heart,android.graphics.Color.WHITE),null,null,null)
-                }
-            },FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
-        },LayoutParams(-1,-2))
-        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) } else
-            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.TRAINING,SettingsAction.HRV_ANALYSIS,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
-        actions.forEachIndexed { index,action ->
-            if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
-                addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {
-                    if(!advanced) { topMargin=BicycleDesign.dp(context,12);bottomMargin=topMargin }
-                })
-            addView(BicycleComponents.listRow(context,themes).apply {
-                tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
-                minimumHeight=BicycleDesign.dp(context,if(advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)
-                if(!advanced) setPadding(paddingLeft,BicycleDesign.dp(context,BicycleDesign.settingsRowVerticalPadding),paddingRight,BicycleDesign.dp(context,BicycleDesign.settingsRowVerticalPadding))
-                setOnClickListener { selected(action) }
-                if(action.icon!=0) addView(ImageView(context).apply {
-                    setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize),BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize)))
-                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=if(advanced) BicycleDesign.bodySp else BicycleDesign.sectionTitleSp; if(!advanced) typeface=BicycleDesign.narrowTypeface(context) },
-                    LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
-                addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize),BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize)))
-            },LayoutParams(-1,-2))
+        if(advanced) {
+            val actions=SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) }
+            actions.forEachIndexed { index,action ->
+                if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
+                addView(menuRow(action,action.label(context),false),LayoutParams(-1,-2))
+            }
+        } else {
+            addGroup("Bike",BicycleIcon.Bikes,listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE),
+                listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA))
+            addGroup(context.getString(R.string.training_title),BicycleIcon.Training,listOf(SettingsAction.TRAINING),emptyList())
+            addGroup("HRV",BicycleIcon.Heart,listOf(SettingsAction.HRV_MEASUREMENT,SettingsAction.HRV_ANALYSIS),listOf(SettingsAction.HRV))
+            addView(menuRow(SettingsAction.ADVANCED,SettingsAction.ADVANCED.label(context),false),LayoutParams(-1,-2))
         }
         if (!advanced) addView(FrameLayout(context).apply {
             tag = "settings_brand_art"
@@ -101,4 +81,60 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             topMargin=BicycleDesign.dp(context,BicycleDesign.settingsRowHeight)/2
         })
     }
+    private fun dp(value:Int)=BicycleDesign.dp(context,value)
+    private fun menuRow(action:SettingsAction,label:String,compact:Boolean):LinearLayout = BicycleComponents.listRow(context,themes).apply {
+        tag="settings_${action.name}";contentDescription=label;isClickable=true;isFocusable=true
+        minimumHeight=dp(if(compact || advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)
+        if(compact) setPadding(dp(BicycleDesign.smallGap),dp(BicycleDesign.settingsRowVerticalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.settingsRowVerticalPadding))
+        setOnClickListener { selected(action) }
+        if(action.icon!=0) addView(ImageView(context).apply {
+            setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+        },LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
+        addView(BicycleComponents.text(context,themes,label).apply {
+            gravity=Gravity.CENTER_VERTICAL
+            textSize=if(compact || advanced) BicycleDesign.bodySp else BicycleDesign.sectionTitleSp
+            typeface=if(compact) BicycleDesign.compactTypeface else if(advanced) BicycleDesign.bodyTypeface else BicycleDesign.narrowTypeface(context)
+        },LayoutParams(0,-2,1f).apply { marginStart=dp(if(compact) BicycleDesign.smallGap else BicycleDesign.verticalPadding) })
+        addView(ImageView(context).apply {
+            BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+        },LayoutParams(dp(if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize),dp(if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize)))
+    }
+    private fun addGroup(title:String,icon:BicycleIcon,left:List<SettingsAction>,right:List<SettingsAction>) {
+        val group=LinearLayout(context).apply {
+            orientation=VERTICAL;tag="settings_box_$title"
+            setPadding(dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap),dp(BicycleDesign.controlGap))
+            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.tertiary) }
+        }
+        group.addView(LinearLayout(context).apply {
+            orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(BicycleDesign.settingsRowHeight)
+            addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(dp(BicycleDesign.settingsIconSize),dp(BicycleDesign.settingsIconSize)))
+            addView(BicycleComponents.text(context,themes,"/").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;BicycleComponents.bindTheme(this,themes) { setTextColor(it.primary) };importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
+            addView(BicycleComponents.text(context,themes,title).apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;isAccessibilityHeading=true },LayoutParams(0,-2,1f))
+        },LayoutParams(-1,-2))
+        fun column(actions:List<SettingsAction>,side:String)=LinearLayout(context).apply {
+            orientation=VERTICAL;tag="settings_column_${title}_$side"
+            val border=dp(BicycleDesign.controlBorder);setPadding(border,border,border,border)
+            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }
+            actions.forEachIndexed { i,action ->
+                if(i>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,dp(BicycleDesign.controlBorder)).apply { marginStart=dp(BicycleDesign.controlGap);marginEnd=marginStart })
+                val label=when(action) {
+                    SettingsAction.STATISTICS -> context.getString(R.string.settings_group_statistics)
+                    SettingsAction.HRV_MEASUREMENT -> context.getString(R.string.settings_group_measurement)
+                    SettingsAction.HRV_ANALYSIS -> context.getString(R.string.settings_group_analysis)
+                    SettingsAction.HRV -> context.getString(R.string.settings_group_hrv_settings)
+                    else -> action.label(context)
+                }
+                addView(menuRow(action,label,true),LayoutParams(-1,-2))
+            }
+        }
+        group.addView(LinearLayout(context).apply {
+            orientation=HORIZONTAL;isBaselineAligned=false
+            addView(column(left,"left"),LayoutParams(0,-1,1f))
+            addView(column(right,"right"),LayoutParams(0,-1,1f).apply { marginStart=dp(BicycleDesign.controlGap) })
+        },LayoutParams(-1,-2))
+        addView(group,LayoutParams(-1,-2).apply { val gap=dp(BicycleDesign.controlGap);setMargins(gap,gap,gap,gap) })
+    }
+
 }

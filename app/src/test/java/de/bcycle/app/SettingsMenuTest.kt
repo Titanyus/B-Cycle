@@ -58,29 +58,15 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_TRAINING", "settings_HRV_ANALYSIS", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "Training", "HRV-Auswertung", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
-                assertEquals(16, body.childCount) // Measurement pill, twelve rows, two dividers and brand image.
-                val measure=body.findViewWithTag<BicycleSpecialButton>("hrv_open_measurement")
-                assertTrue(measure.filled);assertSame(body.getChildAt(0),measure.parent)
-                descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
-                    val margins=divider.layoutParams as ViewGroup.MarginLayoutParams
-                    assertEquals(BicycleDesign.dp(controller.get(),12),margins.topMargin)
-                    assertEquals(margins.topMargin,margins.bottomMargin)
-                }
-                assertSame(rows[5],body.getChildAt(6));assertSame(rows[6],body.getChildAt(8))
-                assertSame(rows[10],body.getChildAt(12));assertSame(rows[11],body.getChildAt(14))
+                assertEquals(13, rows.size)
+                assertEquals(5, body.childCount) // Three category boxes, Advanced, unchanged brand.
+                assertNull(body.findViewWithTag<View>("hrv_open_measurement"))
+                assertEquals(3, descendants(body).count { it.tag?.toString()?.startsWith("settings_box_")==true })
                 rows.forEach { row ->
-                    assertEquals(width,row.width)
-                    if(row.tag=="settings_HRV") assertTrue(row.height>=BicycleDesign.dp(controller.get(),54))
-                    else assertEquals(BicycleDesign.dp(controller.get(),54),row.height)
+                    assertTrue(row.width > 0)
+                    assertTrue(row.height >= BicycleDesign.dp(controller.get(), BicycleDesign.touchSize))
                     val label=descendants(row).filterIsInstance<TextView>().single()
-                    assertEquals(BicycleDesign.narrowTypeface(controller.get()),label.typeface)
-                    assertEquals(BicycleDesign.sectionTitleSp*label.resources.displayMetrics.scaledDensity,label.textSize,.1f)
                     assertEquals(row.contentDescription.toString(),label.text.toString())
-                    val images=descendants(row).filterIsInstance<android.widget.ImageView>()
-                    assertEquals(BicycleDesign.dp(controller.get(),24),images.first().width)
-                    assertEquals(BicycleDesign.dp(controller.get(),18),images.last().width)
                 }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()

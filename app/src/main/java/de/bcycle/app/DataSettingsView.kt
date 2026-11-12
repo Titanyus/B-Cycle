@@ -95,7 +95,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             }
             importRows[action]=row;routesImport.content.addView(row,LayoutParams(-1,-2))
         }
-        val trainingImport=BicycleFrameDropdown(context,themes,context.getString(R.string.training_import_title),false,leadingIcon=BicycleIcon.Power).apply { tag="data_training_import" }
+        val trainingImport=BicycleFrameDropdown(context,themes,context.getString(R.string.training_import_title),false,leadingIcon=BicycleIcon.Training).apply { tag="data_training_import" }
         for(action in TrainingImportAction.entries) trainingImport.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { trainingSelected(action) }.apply {
             tag=action.viewTag;BicycleDialogStyle.actionIcon(this,themes,action.icon)
         },LayoutParams(-1,-2))

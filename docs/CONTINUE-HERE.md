@@ -1,10 +1,12 @@
-# Neue Anpassung nach Build154 (noch nicht in einer APK)
+# Neue Anpassungen nach Build154 (noch nicht in einer APK)
 
-Dashboard-Graphen ohne seitliche Begrenzungslinien; Kurve/Füllung bis zum Kachel-/Bildschirmrand statt horizontalem Zahlenpadding. Labels behalten Innenabstand, Höhe/Skalen/Intervalle unverändert. Drei native Methoden grün, graph-edge-width-tests.log. [Details](dashboard-graph-edges.md). Keine neue APK beauftragt, nicht auf main pushen.
+Einstellungen neu in drei festen zweispaltigen Kästen Bike/Training/HRV, TERTIARY außen/SECONDARY innen, Rahmen und Trenner; Markenbild/Build erhalten. Training systemweit biceps-flexed. Zusätzlich Glow-Sticky-Kästen mit 2dp-Standardrahmen, Flat unverändert. [Details/Prüfung](settings-boxes.md).
+
+Dashboard-Graphen ohne seitliche Begrenzungslinien; Kurve/Füllung bis zum Kachel-/Bildschirmrand statt horizontalem Zahlenpadding. Labels behalten Innenabstand, Höhe/Skalen/Intervalle unverändert. Drei native Methoden grün, graph-edge-width-tests.log. [Details](dashboard-graph-edges.md). Neue APK0.8.110/code180 vom Nutzer beauftragt; nächster Actions-Lauf155.
 
 # Aktueller Stand: APK0.8.109 / Build154
 
-Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlichen Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.
+Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Die oben aufgeführten neuen Änderungen sind noch unveröffentlicht. Veröffentlichung und tatsächlichen Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.109-release-154.apk) · [Buildnachweis](build-154.md) · [Änderungen](release-0.8.109.md)
 
