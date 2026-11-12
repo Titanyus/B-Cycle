@@ -35,3 +35,7 @@ Tests: explizite Gruppenanzahlen und gemeinsame Rahmen, Sensorzuordnung/Entferne
 ## Bildhintergründe
 
 Aus Nutzer-ZIP gelieferte unveränderte PNGs: Triathlet in Aeroposition für Bike, anderer Rennradfahrer für Training. SettingsGroupBackground zeichnet sie proportional auf volle Kastenbreite, oben ausgerichtet und gerundet beschnitten; Menüflächen und Rahmen erhalten. Bitmap einmal je Kasten dekodiert, Geometrie nur bei Boundsänderung berechnet. Alle3Kopfbereiche35% höher. Acht Menü-/Navigationsmethoden erfolgreich (settings-group-image-tests.log), native Glow-Vorschau visuell geprüft. HRV ohne Bild, Markenbild/Build erhalten.
+
+## Zentrale Footerflächen
+
+Der Vollbildhost hatte die zentrale Footerfläche nachträglich auf TERTIARY überschrieben, weshalb reale Strecken-/Vorlagendialoge trotz PRIMARY-Komponententest falsch blieben. BicycleFullscreen und native Dialogbuttonleisten verwenden jetzt dieselbe styleBicycleFooter-Funktion wie Fachseiten. Nur Dashboard bekommt dort TERTIARY, alle anderen PRIMARY. Echte Strecken-/Vorlagen-Dialoge nach dem Vollbildumbau in Flat/Glow geprüft, zusätzlich native Dialogbuttons und Dashboard-Schattenfreiheit. Log central-footer-route-tests.log.

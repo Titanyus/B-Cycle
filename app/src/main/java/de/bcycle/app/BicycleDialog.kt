@@ -305,9 +305,9 @@ internal object BicycleDialogStyle {
         button.minimumHeight = dp(button, BicycleDesign.touchSize)
         button.setPadding(dp(button, BicycleDesign.horizontalPadding), dp(button, BicycleDesign.verticalPadding),
             dp(button, BicycleDesign.horizontalPadding), dp(button, BicycleDesign.verticalPadding))
+        (button.parent as? View)?.let { styleBicycleFooter(it,themes) }
         BicycleComponents.bindTheme(button, themes) { tokens ->
             button.setTextColor(colors(tokens.foreground)); button.backgroundTintList = null; button.background = null
-            (button.parent as? View)?.setBackgroundColor(tokens.primary)
             button.compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
         }
     }

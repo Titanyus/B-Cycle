@@ -1,3 +1,7 @@
+# Zentrale Footer-Korrektur nach Build159 (noch unveröffentlicht)
+
+Ursache tatsächlicher TERTIARY-Streckenfooter gefunden: BicycleFullscreen überschrieb zentrale PRIMARY-Fläche beim Umhängen. Jetzt verwenden Fachfooter, Vollbildhost und native Dialog-Buttonleisten ausschließlich styleBicycleFooter aus BicycleFooter.kt; nur Dashboard-Parameter nutzt TERTIARY. Explizite Gerätepfad-Regression für Strecken und Streckenvorlagen in Flat/Glow ergänzt. Keine neue APK beauftragt.
+
 # Nach Build159 noch unveröffentlicht
 
 Nutzerkorrektur: Dashboard-Footer samt Seitenbuttons wieder TERTIARY wie vor PRIMARY-Änderung. Ausdrücklich alle anderen Footer, einschließlich Streckenmanager/-details, bleiben PRIMARY in Flat/Glow; zentraler dashboard-Parameter trennt Rollen. Dashboard-Schattenlogik und Aufnahmebutton unverändert. Keine neue APK beauftragt.

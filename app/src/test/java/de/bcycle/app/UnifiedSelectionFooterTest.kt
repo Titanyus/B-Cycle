@@ -20,7 +20,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk=[33],qualifiers="mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class UnifiedSelectionFooterTest {
-    @Test fun positionTilesMatchBikeCardsAndFooterIsTertiaryWithoutFrameInBothModes() {
+    @Test fun positionTilesMatchBikeCardsAndFooterIsPrimaryWithoutFrameInBothModes() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -59,4 +59,22 @@ class UnifiedSelectionFooterTest {
             }
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun actualRoutePagesKeepPrimaryFooterAfterFullscreenWrappingInBothDesigns() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val themes=RideRuntime.get(a).themes
+            val open=MainActivity::class.java.getDeclaredMethod("routeSettings",RouteKind::class.java).apply { isAccessible=true }
+            for(flat in listOf(false,true)) for(kind in listOf(RouteKind.RECORDED,RouteKind.IMPORTED)) {
+                themes.setFlatDesign(flat);open.invoke(a,kind);shadowOf(Looper.getMainLooper()).idle()
+                val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+                val footer=screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen_footer")
+                assertNotNull(footer)
+                assertEquals(themes.settings.active.tokens.primary,(footer.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+                screen.dismiss()
+            }
+            val dashboard=LinearLayout(a).apply { styleBicycleFooter(this,themes,dashboard=true) }
+            assertEquals(themes.active.tokens.tertiary,(dashboard.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+        } finally { host.pause().stop().destroy() }
+    }
+
 }

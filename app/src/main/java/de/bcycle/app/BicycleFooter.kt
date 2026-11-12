@@ -51,7 +51,8 @@ internal fun bicycleFooter(context: Context, themes: ThemeManager) = LinearLayou
     styleBicycleFooter(this, themes)
 }
 
-/** Dashboard stays shadow-free in both designs; settings retain their existing footer styling. */
+/** Single footer surface policy for pages, fullscreen hosts and dialog actions.
+ * Only the dashboard uses TERTIARY and stays shadow-free; all other footers use PRIMARY. */
 internal fun styleBicycleFooter(view:android.view.View,themes:ThemeManager,dashboard:Boolean=false) {
     if(!dashboard) BicycleFooterShadow.bind(view)
     BicycleComponents.background(view,themes,if(dashboard) ThemeRole.TERTIARY else ThemeRole.PRIMARY)

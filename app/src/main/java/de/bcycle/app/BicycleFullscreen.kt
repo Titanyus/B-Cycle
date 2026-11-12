@@ -78,9 +78,8 @@ internal object BicycleFullscreen {
         footer?.let {
             detach(it); it.tag = "bicycle_fullscreen_footer"
             it.minimumHeight = BicycleDesign.dp(context, BicycleDesign.touchSize)
-            BicycleComponents.bindTheme(it, themes) { tokens -> it.setBackgroundColor(tokens.tertiary);it.foreground=null }
+            styleBicycleFooter(it,themes)
             host.addView(it, LinearLayout.LayoutParams(-1, -2))
-            BicycleFooterShadow.bind(it)
         }
         window.setDecorFitsSystemWindows(false)
         if(extendPageBackground) window.attributes=window.attributes.apply {
