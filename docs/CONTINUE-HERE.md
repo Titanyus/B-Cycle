@@ -1,3 +1,9 @@
+# Trainingshilfe in Dashboards & UI (noch unveröffentlicht)
+
+Eigenen Profil-Sticky-Abschnitt Trainingshilfe entfernt, nun kleine Überschrift im Design-/UI-Inhalt. Gemeinsame BicycleGroupedBox mit Zonenindikator und Trinkerinnerung, auch in Feldauswahl. Zonenindikator: unabhängiger Ein/Aus-Schalter im Dropdownkopf, innen3Modi Aus/Alle Zonen/Zone2, kleine Überschrift Trainingshilfe für, zwei Mehrfach-Auswahlbuttons Aktuelle Werte/Durchschnittswerte, Erklärung zuletzt. Originale DashboardTrainingHelp-Keys/Modell/Renderpfad und profilbezogene Trinkdaten erhalten. Schalter und Modi synchron, Aufklappen aktiviert nichts; OFF kann in derselben Ansicht letzten aktiven Modus wieder einschalten, Dashboardwechsel lädt dessen eigene Werte.
+
+Prüfung training-help-combobox-final-tests.log erfolgreich: Profil-Einbettung, Feldauswahl, Mode-/Schaltersynchronisierung, pagebezogene Speicherung, Trinkerinnerung und Backup. Native Vorschau training-help-group.png angesehen. Ein zusätzlicher alter Routingtest für DashboardTrainingHelp scheiterte im unveränderten Modellpfad (training-help-combobox-tests.log); keine grüne Gesamtsuite behauptet. Keine neue APK beauftragt.
+
 # Neue Bilder nach Build160 (noch unveröffentlicht)
 
 BC.zip vom Nutzer: App-Bike.webp/App-Training.webp/App-HRV.webp bytegleich nach drawable-nodpi übernommen. Alte zwei PNGs ersetzt, HRV erstmals mit Bild. Bestehende SettingsGroupBackground-Darstellung vollbreit/proportional/oben ausgerichtet unverändert. Prüfung SettingsBoxesTest in Flat/Glow bei288/360/480dp erfolgreich (settings-bc-artwork-tests.log), native Glow-Vorschau angesehen. Bei nächster APK Bildverifikation auf drei WEBPs statt zwei PNGs anpassen. Keine neue APK beauftragt.

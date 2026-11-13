@@ -8,6 +8,7 @@ import android.widget.*
 
 internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,prefs:SharedPreferences,
     canEdit:()->Boolean={true},changed:()->Unit={}):LinearLayout(context) {
+    val frame:BicycleFrameDropdown
     init {
         orientation=VERTICAL;tag="drink_reminder_settings"
         val initial=DrinkReminderSettings.read(prefs)
@@ -16,7 +17,7 @@ internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,pre
             tag="drink_reminder_enabled";setText(R.string.drink_reminder_title);isChecked=initial.enabled
             BicycleDialogStyle.control(this,themes)
         }
-        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.drink_reminder_title),open=false,
+        frame=BicycleFrameDropdown(context,themes,context.getString(R.string.drink_reminder_title),open=false,
             trailing=enabled,leadingIcon=BicycleIcon.DrinkReminder)
         frame.expandControl.tag="drink_reminder_expand"
         val details=frame.content.apply { tag="drink_reminder_details" }

@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import org.json.JSONObject
 import org.json.JSONArray
@@ -52,8 +53,13 @@ class TrainingZoneUiTest {
         }
         view.show(DashboardTrainingHelp(TrainingHelpMode.ZONE_TWO,true,false))
         assertTrue(zone.isChecked);assertEquals(3,changes.size)
-        assertTrue(view.findViewWithTag<Switch>("training_help_current").isChecked)
-        assertFalse(view.findViewWithTag<Switch>("training_help_average").isChecked)
+        assertTrue(view.findViewWithTag<android.widget.CompoundButton>("training_help_current").isChecked)
+        assertFalse(view.findViewWithTag<android.widget.CompoundButton>("training_help_average").isChecked)
+        val enabled=view.findViewWithTag<Switch>("training_help_enabled")
+        assertTrue(enabled.isChecked);enabled.performClick()
+        assertEquals(TrainingHelpMode.OFF,changes.last().mode)
+        enabled.performClick();assertEquals(TrainingHelpMode.ZONE_TWO,changes.last().mode)
+        assertEquals(View.VISIBLE,details.visibility)
     }
     @Test fun longPressUsesEditorForPowerAndPulseAndTrainingHelpIsInEveryFieldPicker() {
         context.getSharedPreferences("bike",0).edit().putString("dashboardTemplate_0","EIGHT").apply()
@@ -67,15 +73,15 @@ class TrainingZoneUiTest {
                 tile.performClick();shadowOf(Looper.getMainLooper()).idle()
                 val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
                 val fields=screen.window!!.decorView
-                assertTrue(testDescendants(fields).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==activity.getString(R.string.training_help_title) })
+                assertTrue(testDescendants(fields).filterIsInstance<TextView>().any { it.isAccessibilityHeading && it.text.toString()==activity.getString(R.string.training_help_title) })
                 if(slot==0) {
                     fields.findViewWithTag<RadioButton>("training_help_all").performClick()
                     fields.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
                     assertFalse(fields.findViewWithTag<RadioButton>("training_help_all").isChecked)
-                    fields.findViewWithTag<Switch>("training_help_average").performClick()
+                    fields.findViewWithTag<android.widget.CompoundButton>("training_help_average").performClick()
                 }
                 assertTrue(fields.findViewWithTag<RadioButton>("training_help_zone_two").isChecked)
-                assertTrue(fields.findViewWithTag<Switch>("training_help_average").isChecked)
+                assertTrue(fields.findViewWithTag<android.widget.CompoundButton>("training_help_average").isChecked)
                 val prefs=RideRuntime.get(activity).preferences
                 assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
                 assertEquals(TrainingHelpMode.OFF,DashboardTrainingHelp.read(prefs,1).mode)
@@ -96,8 +102,8 @@ class TrainingZoneUiTest {
             root.findViewWithTag<View>("preset_page_1").performClick()
             assertFalse(root.findViewWithTag<RadioButton>("training_help_all").isChecked)
             root.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
-            root.findViewWithTag<Switch>("training_help_current").performClick()
-            root.findViewWithTag<Switch>("training_help_average").performClick()
+            root.findViewWithTag<android.widget.CompoundButton>("training_help_current").performClick()
+            root.findViewWithTag<android.widget.CompoundButton>("training_help_average").performClick()
             assertEquals(DashboardTrainingHelp(TrainingHelpMode.ZONE_TWO,false,true),DashboardTrainingHelp.read(prefs,1))
             root.findViewWithTag<View>("preset_page_0").performClick()
             assertTrue(root.findViewWithTag<RadioButton>("training_help_all").isChecked)
@@ -115,10 +121,33 @@ class TrainingZoneUiTest {
             assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
             fields.findViewWithTag<android.widget.Switch>("field_data_enabled").performClick()
             assertEquals(View.VISIBLE,controls.visibility)
-            fields.findViewWithTag<Switch>("training_help_average").performClick()
+            fields.findViewWithTag<android.widget.CompoundButton>("training_help_average").performClick()
             assertTrue(DashboardTrainingHelp.read(prefs,0).average)
             assertTrue(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().isShowing)
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun profileEmbedsZoneIndicatorAndReminderInsideDesignSection() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get()
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
+            shadowOf(Looper.getMainLooper()).idle()
+            val root=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            val design=root.findViewWithTag<ViewGroup>("profile_section_content_${a.getString(R.string.ui_design_title)}")
+            val help=design.findViewWithTag<TrainingHelpView>("training_help_controls")
+            assertNotNull(help)
+            assertFalse(testDescendants(root).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==a.getString(R.string.training_help_title) })
+            val box=help.findViewWithTag<BicycleGroupedBox>("training_help_group")
+            assertEquals(3,box.childCount)
+            val frame=help.findViewWithTag<BicycleFrameDropdown>("training_help_zone_frame")
+            val enabled=help.findViewWithTag<Switch>("training_help_enabled")
+            assertFalse(frame.expanded);val before=enabled.isChecked
+            frame.header.performClick();assertEquals(before,enabled.isChecked)
+            assertSame(box,help.findViewWithTag<DrinkReminderSettingsView>("drink_reminder_settings").parent)
+            help.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));help.layout(0,0,360,help.measuredHeight)
+            val image=Bitmap.createBitmap(360,help.height,Bitmap.Config.ARGB_8888);help.draw(Canvas(image))
+            java.io.File("build/reports/ui/training-help-group.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun profilePowerZonesUpdateWithFtpAndHideForInvalidInputs() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()

@@ -41,3 +41,7 @@ Native Ansichten mit synthetischen Testdaten: [Profil](previews/profile-revision
 ## Verfeinerungen01.11.2026 nach Build118
 
 Unter Karten entfällt nur der Schalter „Importierte GPX-Strecke anzeigen“. Dashboard-Kartenschalter, persistierte Sichtbarkeit und Backup bleiben erhalten. Unter Sensoren zeigen alle freigeschalteten Profiltypen Bluetooth-Gruppen einschließlich Abstand nur bei gespeicherter Adresse/Schaltwerkzuordnung oder aktuellem Suchfund. Suchfunde bleiben an den aktuellen Suchlauf/das Profil gebunden. Ausschalten sowie „Verbindung trennen“ behalten zugeordnete Sensoren sichtbar; erst „Sensor entfernen“ entfernt auch einen noch vorhandenen Suchfund. GPS bleibt der integrierte Handysensor. Suche und Zuordnen unverändert verfügbar, keine automatische Profilzuordnung.
+
+## Trainingshilfe integriert,13.11.2026
+
+Kleine Überschrift Trainingshilfe und gemeinsame BicycleGroupedBox im Dashboards-&-UI-Inhalt statt separatem Sticky-Abschnitt. Dieselbe TrainingHelpView in Feldauswahl. Zonenindikator-Kopf mit unabhängigen Ein/Aus und Aufklappen; innen Modi, Zielwerte-Mehrfachbuttons und Erklärung. Trinkerinnerung zweiter gruppierter Eintrag, Originalwrapper/Listener/Schalter erhalten. Dashboardwechsel aktualisiert gemeinsame Controls aus bestehenden pagebezogenen Werten, Trinkdaten bleiben Fahrradprofil-bezogen. Prüfungen training-help-combobox-final-tests.log, native Vorschau training-help-group.png.

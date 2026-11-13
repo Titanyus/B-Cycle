@@ -69,7 +69,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
         if(trainingHelp!=null) {
             if(drinkReminder!=null) trainingHelp.addDrinkReminder(drinkReminder)
-            BicycleForm.section(panels,themes,R.string.training_help_title)
+            panels.addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.training_help_title)))
             panels.addView(trainingHelp,LayoutParams(-1,-2))
         }
         if(drinkReminder!=null && trainingHelp==null) panels.addView(drinkReminder,LayoutParams(-1,-2))

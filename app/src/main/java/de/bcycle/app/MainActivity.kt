@@ -683,7 +683,6 @@ class MainActivity : Activity() {
                 }.show()
         }, additionalSections={ listOf(
             R.string.ui_design_title to dashboardControls(embedded=true),
-            R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" },
             R.string.ui_settings_map to mapControls()
         ) }, editDashboard=::enterDashboardEditor,assignProfiles=::showOrphanProfiles)
         bikesManager = content
@@ -1460,7 +1459,6 @@ class MainActivity : Activity() {
         fun refreshPages() {
             presets.refresh();changeDashboard(0)
             trainingControls?.show(DashboardTrainingHelp.read(preferences,dashboardPages.selected()))
-            bikesManager?.findViewWithTag<TrainingHelpView>("profile_training_help")?.show(DashboardTrainingHelp.read(preferences,dashboardPages.selected()))
             removeDashboard.visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE
         }
         footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.RenameTrack,getString(R.string.dashboard_rename)) {
@@ -1487,7 +1485,7 @@ class MainActivity : Activity() {
         }.apply { tag="dashboard_delete";visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE }
         presets.changed=::refreshPages
         root.addView(presets)
-        if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
+        trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
         footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
             tag="dashboard_editor_open";(getChildAt(1) as TextView).maxLines=2
         },LinearLayout.LayoutParams(0,-2,1f))
@@ -1518,7 +1516,7 @@ class MainActivity : Activity() {
             render()
         }.apply { addDrinkReminder(drinkReminderControls()) }
     private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
-        val heading=BicycleForm.section(root,settingsThemes,R.string.training_help_title).apply { revealOnOpen=true }
+        val heading=BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.training_help_title)).also { root.addView(it) }
         return trainingHelpControls(page).also { it.revealAnchor=heading;root.addView(it) }
     }
     private fun mapSettings() {
