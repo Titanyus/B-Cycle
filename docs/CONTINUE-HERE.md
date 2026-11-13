@@ -1,33 +1,28 @@
-# Neue Änderungen nach Build161 (noch unveröffentlicht)
+# Aktueller Stand: APK0.8.117 / Build162
 
-Ein Stil auf bisheriger Glow-Basis, Flat-Auswahl aus Dashboards & UI entfernt. Historischer Flat-Key wirkungslos/retired, aus neuen Backups entfernt, alte Backups lesbar. Dashboard-Zonenindikatoren immer bisherige Flat-Striche mit8%-Höhe und HSV-Übergängen. [Details](unified-ui-style.md).
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Raw-Direktdownload noch prüfen.
 
-NP: ConfirmedBikePause wartet bei belegtem Stillstand ohne Leistungsdaten nicht länger auf BLE-Abschaltung. Frische/Genauigkeit/10s-Stillstand erhalten,90%-Qualitätsgrenzen unverändert. Nutzer bestätigt lange Anfangspause und lässt E-Bike dabei an. [Details](confirmed-np-pause.md).
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.117-release-162.apk) · [Buildnachweis](build-162.md) · [Änderungen](release-0.8.117.md)
 
-FIT: eigene alte Höhenkorrektur-memo_glob-Nachricht erzeugt reproduzierbaren FITFileViewer-Absturz. Künftig weglassen, eigene Altkommentare bei erneuter Korrektur entfernen, andere Kommentare erhalten. Garmin-Validierung der privaten Datei vollständig ohne Fehler, Viewer-Kopie nach binärer Entfernung eines Kommentars lesbar. Private bereinigte FIT nur /workspace/shared/downloads/B-Cycle-bereinigt.fit; sämtliche sonstigen Felder unverändert, keine NP nachgetragen. Niemals private FIT/Samples ins Repo. [Nachweis](fit-comment-compatibility.md).
-
-Gezielte Tests unified-style-np-fit-final-verified-tests.log und fit-memo-and-zone-strip-guard-tests.log, Offline-Katalog geprüft. Keine neue APK beauftragt.
-
-# Aktueller Stand: APK0.8.116 / Build161
-
-Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichungfe1c85ed.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.116-release-161.apk) · [Buildnachweis](build-161.md) · [Änderungen](release-0.8.116.md)
-
-Actions43408245147 erfolgreich aus Quellstand5ff04778ea77ed1351b66fa9f5cb997acba35b71, VersionCode186, Android13+. 4645828Bytes; SHA-256ab8ff0e82335ccb3604f6a89a35fc8309af5e6f7cb59257000cc0b4a559c7286. Dauerhafte Signatur bestätigt, drei neue WebPs unverändert eingebettet.
+Actions43462101944 erfolgreich aus Quellstandaeff55d35f7212e558cebe220304539f58bd9178, VersionCode187, Android13+. 4645728Bytes; SHA-2561caddedd03a41123a1d646d299a1451ea9e8e69ea5193c368ae350ddd28fb713. Dauerhafte Signatur bestätigt.
 
 ## Letzte Änderungen
 
-- Trainingshilfe in Dashboards & UI als Kombibox mit Zonenindikator und Trinkerinnerung.
-- Zonenindikator mit unabhängigem Ein/Aus-Schalter; innen Aus/Alle Zonen/Zone2, „Trainingshilfe für“, Aktuelle Werte/Durchschnittswerte als Mehrfachbuttons, Erklärung zuletzt.
-- Dieselben Bedienelemente in der Dashboard-Feldauswahl; bestehende Dashboard-/Profilzuordnung und Speicherung erhalten.
-- Neue unveränderte WebP-Bilder für Bike, Training und HRV aus BC.zip.
+- Ein einheitlicher Stil auf bisheriger Glow-Basis; Flat-Auswahl entfernt, alte Einstellungen bleiben lesbar.
+- Dashboard-Zonenindikatoren als flache8%-Striche mit natürlichen Farbübergängen.
+- 14 verschiedene PRIMARY-Farben mit identischem ACCENT und gemeinsamen dunklen Flächen; Dark-Varianten durch benannte Zwischentöne ersetzt.
+- Bestätigte NP-Pausen ohne Leistungsdaten auch bei weiter eingeschaltetem/verbundenem E-Bike.
+- Zusätzlichen Höhenkommentar in FIT-Dateien entfernt, der FITFileViewer zum Absturz bringen konnte.
 
-Gezielte Trainingshilfe-/Trinkerinnerungs-/Speicherprüfungen erfolgreich (training-help-combobox-final-tests.log); Bilder und Kastenlayout in Flat/Glow bei288/360/480dp geprüft (settings-bc-artwork-tests.log), native Vorschauen angesehen. Zentrale Typografie-/Atlas-/Bright-/Diffprüfungen grün. Kein Profiling oder lokaler APK-Build. Ein zusätzlicher alter Routingtest im unveränderten DashboardTrainingHelp-Modell scheiterte im breiteren Erstlauf; keine grüne Gesamtsuite behauptet.
+Gezielte Tests erfolgreich: fourteen-primary-themes-final-tests.log, unified-style-np-fit-final-verified-tests.log und fit-memo-and-zone-strip-guard-tests.log. Alte Theme-/Stil-Auswahl und Backups, Zonenstriche/HSV-Endfarben, NP-Pausen mit unveränderter Fahrzeit sowie kommentarfreie Höhenkorrektur geprüft. Offline-Katalog mit14Themes ohne Stilumschalter im Browser geprüft. Typografie-/Atlas-/Bright-/Diffchecks grün. Keine Gesamtsuite oder Laufzeitmessung behauptet; kein lokaler APK-Build.
 
-TrainingHelpView von Profil und Feldauswahl gemeinsam genutzt. Kein eigener Profil-Sticky-Abschnitt mehr. Neue Header-Switch/Segmentbuttons synchronisiert, Dropdown-Aufklappen aktiviert nichts. Letzten aktiven Modus nur innerhalb derselben Ansicht merken, beim Dashboardwechsel dessen gespeicherte Werte laden. Trinkerinnerung weiter profilbezogen. Ursprüngliche zwei großen PNGs durch drei Original-WEBPs aus BC.zip ersetzt; bei künftiger APK-Verifikation drei WEBPs berücksichtigen.
+14Themes: sieben normale plus sieben HSV-Zwischentöne, alte Dark-IDs über Alias weiter lesbar. [Tabelle](theme-palettes.md). Kein Flat-UI-Umschalter mehr, alte Flat-Settings retired/bei Restore ignoriert, Dashboard-Zonenstriche unabhängig vom UI-Stil. [Details](unified-ui-style.md).
 
-Vorheriger Build160 enthält zentrale PRIMARY-Footer über BicycleFooter.kt einschließlich Vollbildhost, ausschließlich Dashboard TERTIARY; FIT-Kombibox, Trainingsfooter-Schalter, Sortierung Stärke/Leicht/Sweet Spot/Hart und verborgene Variantenpille ohne Alternativen. Alles erhalten.
+NP-Pausenerkennung wartet nicht mehr auf Rad-/BLE-Abschaltung; frische/ausreichend genaue10s-Stillstandsbelege und fehlende Leistung bleiben erforderlich,90%-Qualitätsgrenzen und Fahrzeit unverändert. Nutzer bestätigt Anfangspause und lässt Rad oft lange an. [Details](confirmed-np-pause.md).
+
+Private Nutzer-FIT und Kommentarbereinigung: Garmin-Validierung ohne Fehler. FITFileViewer-Absturz lokal exakt über Originaldecoder reproduziert, verursacht durch alte Mapterhorn-memo_glob-Attribution. Künftig weglassen, nur eigene Altkommentare beim Korrigieren entfernen. Lokale bereinigte Kopie /workspace/shared/downloads/B-Cycle-bereinigt.fit, alle anderen Daten unverändert, keine NP nachgetragen; private Nachweise .tools/np-nov13. NIEMALS private FIT/Samples ins Repo. [Nachweis](fit-comment-compatibility.md).
+
+Vorherige Trainingshilfe-Kombibox samt Feldauswahl und drei neuen WebPs aus Build161 erhalten. Zentrale Footer PRIMARY außer Dashboard TERTIARY, FIT-Kombibox und Trainings-Stärkesortierung/Variantenpille aus Build160 erhalten.
 
 ## Bisheriger Stand und Grenzen
 
