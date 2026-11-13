@@ -14,3 +14,7 @@ Release ausschließlich GitHub Actions. Prüfsumme, dauerhafte Update-Signatur, 
 Gezielte Tests erfolgreich: fourteen-primary-themes-final-tests.log, unified-style-np-fit-final-verified-tests.log und fit-memo-and-zone-strip-guard-tests.log. Alte Theme-/Stil-Auswahl und Backups, Zonenstriche/HSV-Endfarben, NP-Pausen mit unveränderter Fahrzeit sowie kommentarfreie Höhenkorrektur geprüft. Offline-Katalog mit14Themes ohne Stilumschalter im Browser geprüft. Typografie-/Atlas-/Bright-/Diffchecks grün. Keine Gesamtsuite oder Laufzeitmessung behauptet; kein lokaler APK-Build.
 
 [Änderungen](release-0.8.117.md).
+
+## Direkter Downloadnachweis
+
+Raw-Download nach Veröffentlichungfa920aa3 tatsächlich abgerufen:4645728Bytes, binär identisch zum Actions-Artefakt. SHA-256 `1caddedd03a41123a1d646d299a1451ea9e8e69ea5193c368ae350ddd28fb713`.

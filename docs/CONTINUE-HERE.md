@@ -1,6 +1,6 @@
 # Aktueller Stand: APK0.8.117 / Build162
 
-Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Raw-Direktdownload noch prüfen.
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichungfa920aa3.
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.117-release-162.apk) · [Buildnachweis](build-162.md) · [Änderungen](release-0.8.117.md)
 
