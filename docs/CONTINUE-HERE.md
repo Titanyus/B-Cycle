@@ -1,32 +1,23 @@
-# Trainingshilfe in Dashboards & UI (noch unveröffentlicht)
+# Aktueller Stand: APK0.8.116 / Build161
 
-Eigenen Profil-Sticky-Abschnitt Trainingshilfe entfernt, nun kleine Überschrift im Design-/UI-Inhalt. Gemeinsame BicycleGroupedBox mit Zonenindikator und Trinkerinnerung, auch in Feldauswahl. Zonenindikator: unabhängiger Ein/Aus-Schalter im Dropdownkopf, innen3Modi Aus/Alle Zonen/Zone2, kleine Überschrift Trainingshilfe für, zwei Mehrfach-Auswahlbuttons Aktuelle Werte/Durchschnittswerte, Erklärung zuletzt. Originale DashboardTrainingHelp-Keys/Modell/Renderpfad und profilbezogene Trinkdaten erhalten. Schalter und Modi synchron, Aufklappen aktiviert nichts; OFF kann in derselben Ansicht letzten aktiven Modus wieder einschalten, Dashboardwechsel lädt dessen eigene Werte.
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Raw-Direktdownload noch prüfen.
 
-Prüfung training-help-combobox-final-tests.log erfolgreich: Profil-Einbettung, Feldauswahl, Mode-/Schaltersynchronisierung, pagebezogene Speicherung, Trinkerinnerung und Backup. Native Vorschau training-help-group.png angesehen. Ein zusätzlicher alter Routingtest für DashboardTrainingHelp scheiterte im unveränderten Modellpfad (training-help-combobox-tests.log); keine grüne Gesamtsuite behauptet. Keine neue APK beauftragt.
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.116-release-161.apk) · [Buildnachweis](build-161.md) · [Änderungen](release-0.8.116.md)
 
-# Neue Bilder nach Build160 (noch unveröffentlicht)
-
-BC.zip vom Nutzer: App-Bike.webp/App-Training.webp/App-HRV.webp bytegleich nach drawable-nodpi übernommen. Alte zwei PNGs ersetzt, HRV erstmals mit Bild. Bestehende SettingsGroupBackground-Darstellung vollbreit/proportional/oben ausgerichtet unverändert. Prüfung SettingsBoxesTest in Flat/Glow bei288/360/480dp erfolgreich (settings-bc-artwork-tests.log), native Glow-Vorschau angesehen. Bei nächster APK Bildverifikation auf drei WEBPs statt zwei PNGs anpassen. Keine neue APK beauftragt.
-
-# Aktueller Stand: APK0.8.115 / Build160
-
-Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung15b5c56f.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.115-release-160.apk) · [Buildnachweis](build-160.md) · [Änderungen](release-0.8.115.md)
-
-Actions43301379105 aus Quellstand31e6f2db5dab263d886a74018591b633b0426af1, VersionCode185, Android13+. 7129785Bytes; SHA-25670d1473f5934fdf9852eb420062f1bf6dca315a2776d787c71d1c405b928db6f. Dauerhafte Signatur bestätigt.
+Actions43408245147 erfolgreich aus Quellstand5ff04778ea77ed1351b66fa9f5cb997acba35b71, VersionCode186, Android13+. 4645828Bytes; SHA-256ab8ff0e82335ccb3604f6a89a35fc8309af5e6f7cb59257000cc0b4a559c7286. Dauerhafte Signatur bestätigt, drei neue WebPs unverändert eingebettet.
 
 ## Letzte Änderungen
 
-- Zentrale Footer-Gestaltung auch im Vollbildhost: alle Footer PRIMARY, ausschließlich Dashboard TERTIARY.
-- Metadaten und Datenquellen unter der FIT-Speicherauswahl in gemeinsamer Kombibox, vorhandene Feldschalter erhalten.
-- Trainingsfooter über Header-Button ein-/ausblendbar, initial verborgen.
-- Sortierung Stärke als erste Option mit Leicht/Sweet Spot/Hart; Abschnitte nur noch als Kennzahl.
-- Variantenpille bei Trainings ohne umschaltbare Varianten ausgeblendet.
+- Trainingshilfe in Dashboards & UI als Kombibox mit Zonenindikator und Trinkerinnerung.
+- Zonenindikator mit unabhängigem Ein/Aus-Schalter; innen Aus/Alle Zonen/Zone2, „Trainingshilfe für“, Aktuelle Werte/Durchschnittswerte als Mehrfachbuttons, Erklärung zuletzt.
+- Dieselben Bedienelemente in der Dashboard-Feldauswahl; bestehende Dashboard-/Profilzuordnung und Speicherung erhalten.
+- Neue unveränderte WebP-Bilder für Bike, Training und HRV aus BC.zip.
 
-Gezielte Menü-/Navigations-/Trackmethoden erfolgreich, central-footer-route-tests.log, fit-stored-group-final-tests.log, training-strength-footer-final-tests.log und training-variant-visibility-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. BicycleGroupedBox jetzt auch für Sensoren, Radwege/Radrouten und Backup-Gruppen. Native Bildvorschau geprüft; Original-PNGs aus ZIP unverändert übernommen. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte vor UI-Prüfung an nativer Zoominitialisierung; Details settings-boxes.md.
+Gezielte Trainingshilfe-/Trinkerinnerungs-/Speicherprüfungen erfolgreich (training-help-combobox-final-tests.log); Bilder und Kastenlayout in Flat/Glow bei288/360/480dp geprüft (settings-bc-artwork-tests.log), native Vorschauen angesehen. Zentrale Typografie-/Atlas-/Bright-/Diffprüfungen grün. Kein Profiling oder lokaler APK-Build. Ein zusätzlicher alter Routingtest im unveränderten DashboardTrainingHelp-Modell scheiterte im breiteren Erstlauf; keine grüne Gesamtsuite behauptet.
 
-Vorherige Änderungen aus Build155/156 weiter enthalten: drei zweispaltige TERTIARY/SECONDARY-Kästen, Markenbild/Build, biceps-flexed, wrench, keine Chevrons, Einzüge16/8dp; Glow-Sticky-Kontur und Graphen bis zum Rand. [Details](settings-boxes.md).
+TrainingHelpView von Profil und Feldauswahl gemeinsam genutzt. Kein eigener Profil-Sticky-Abschnitt mehr. Neue Header-Switch/Segmentbuttons synchronisiert, Dropdown-Aufklappen aktiviert nichts. Letzten aktiven Modus nur innerhalb derselben Ansicht merken, beim Dashboardwechsel dessen gespeicherte Werte laden. Trinkerinnerung weiter profilbezogen. Ursprüngliche zwei großen PNGs durch drei Original-WEBPs aus BC.zip ersetzt; bei künftiger APK-Verifikation drei WEBPs berücksichtigen.
+
+Vorheriger Build160 enthält zentrale PRIMARY-Footer über BicycleFooter.kt einschließlich Vollbildhost, ausschließlich Dashboard TERTIARY; FIT-Kombibox, Trainingsfooter-Schalter, Sortierung Stärke/Leicht/Sweet Spot/Hart und verborgene Variantenpille ohne Alternativen. Alles erhalten.
 
 ## Bisheriger Stand und Grenzen
 
