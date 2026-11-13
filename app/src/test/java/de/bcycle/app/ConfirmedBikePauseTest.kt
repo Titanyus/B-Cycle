@@ -5,19 +5,34 @@ import org.junit.Test
 import kotlin.math.pow
 
 class ConfirmedBikePauseTest {
-    @Test fun onlyFreshAccurateSustainedStationaryEvidenceWithoutBikeOrPowerConfirmsRest() {
+    @Test fun onlyFreshAccurateSustainedStationaryEvidenceWithoutPowerConfirmsRest() {
         val pause=ConfirmedBikePause()
-        fun update(at:Long,bike:Boolean=false,power:Boolean=false,speed:Double?=0.0,fix:Long?=at,accuracy:Double?=3.0)=
-            pause.update(at,true,bike,power,speed,fix,accuracy)
+        fun update(at:Long,power:Boolean=false,speed:Double?=0.0,fix:Long?=at,accuracy:Double?=3.0)=
+            pause.update(at,true,power,speed,fix,accuracy)
         for(at in 0L..9000L step 1000) assertFalse(update(at))
         assertFalse(update(9999));assertTrue(update(10000))
-        assertFalse(update(11000,bike=true));assertFalse(update(12000,power=true))
+        assertTrue(update(11000));assertFalse(update(12000,power=true))
         assertFalse(update(13000,speed=3.0));assertFalse(update(14000))
         for(at in 15000L..23000L step 1000) assertFalse(update(at))
         assertTrue(update(24000));assertFalse(update(25000,fix=10000))
         assertFalse(update(26000,accuracy=100.0));assertFalse(update(27000,fix=null))
-        assertFalse(update(28000,speed=null));assertFalse(pause.update(40000,false,false,false,0.0,40000,3.0))
+        assertFalse(update(28000,speed=null));assertFalse(pause.update(40000,false,false,0.0,40000,3.0))
         pause.reset();assertFalse(update(50000));assertFalse(update(59000))
+    }
+    @Test fun stationaryMissingPowerIsExcludedWithoutNeedingBluetoothDisconnect() {
+        val engine=PerformanceEngine();val pause=ConfirmedBikePause()
+        for(second in 0 until 2100) {
+            val at=second*1000L;val rest=second in 600 until 1500
+            engine.accept(power(at,if(rest) null else 200.0))
+            val confirmed=pause.update(at,true,!rest,if(rest) 0.0 else 5.0,at,3.0)
+            engine.accept(PerformanceEvent(PerformanceChannel.NP_PAUSE,at,if(confirmed) 1.0 else 0.0))
+        }
+        engine.advance(2100000)
+        val result=engine.snapshot()
+        assertEquals(200.0,result.normalizedPowerW!!,.001)
+        assertEquals(890000L,result.quality.npPausedMs)
+        assertEquals(2100000L,result.quality.activeMs)
+        assertTrue(result.quality.npPowerCoverage>=PerformanceEngine.MIN_NP_COVERAGE)
     }
     private fun power(at:Long,watts:Double?)=PerformanceEvent(PerformanceChannel.POWER,at,watts,source=PowerSource.BOSCH_RIDER.name)
     @Test fun longConfirmedRestLeavesWholeRideClockButExcludesOnlyNpTimeAndNeverJoinsWindows() {

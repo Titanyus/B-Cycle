@@ -835,7 +835,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             set("PRIMARY_ASCENT",primaryElevation.ascent);set("PRIMARY_DESCENT",primaryElevation.descent)
         }
         val npPause=confirmedBikePause.update(now,recording && bikes.current().type==BikeType.EBIKE,
-            connection.isLive,primaryPower(now)!=null,gps.speedKmh?.div(3.6),
+            primaryPower(now)!=null,gps.speedKmh?.div(3.6),
             ride.gps.lastObservationTimeMs.takeIf { gpsEnabled && !isIndoor },ride.gps.lastObservationAccuracyM)
         values[ConfirmedBikePause.FLAG]=if(npPause) 1.0 else 0.0
         return RideSample(startUtc + now - startElapsed, now - startElapsed, gps.latitude.takeIf { gpsEnabled && !isIndoor }, gps.longitude.takeIf { gpsEnabled && !isIndoor }, values, pendingPerformance.toList())
