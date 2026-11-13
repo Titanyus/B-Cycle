@@ -14,3 +14,7 @@ Release ausschließlich GitHub Actions. Prüfsumme, dauerhafte Update-Signatur, 
 Gezielte Trainingshilfe-/Trinkerinnerungs-/Speicherprüfungen erfolgreich (training-help-combobox-final-tests.log); Bilder und Kastenlayout in Flat/Glow bei288/360/480dp geprüft (settings-bc-artwork-tests.log), native Vorschauen angesehen. Zentrale Typografie-/Atlas-/Bright-/Diffprüfungen grün. Kein Profiling oder lokaler APK-Build. Ein zusätzlicher alter Routingtest im unveränderten DashboardTrainingHelp-Modell scheiterte im breiteren Erstlauf; keine grüne Gesamtsuite behauptet.
 
 [Änderungen](release-0.8.116.md).
+
+## Direkter Downloadnachweis
+
+Raw-Download nach Veröffentlichungfe1c85ed tatsächlich abgerufen:4645828Bytes, binär identisch zum Actions-Artefakt. SHA-256 `ab8ff0e82335ccb3604f6a89a35fc8309af5e6f7cb59257000cc0b4a559c7286`.
