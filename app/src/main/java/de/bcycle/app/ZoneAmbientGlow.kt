@@ -8,7 +8,7 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
     var powerSaving=false
         set(value) { if(field!=value) { field=value;from=target;started=clock()-1500;unscheduleSelf(frame);invalidateSelf() } }
     var flat=false
-        set(value) { if(field!=value) { field=value;invalidateSelf() } }
+        set(value) { if(field!=value) { field=value;cachedColor=null;invalidateSelf() } }
     private var from = Color.TRANSPARENT
     private var target = Color.TRANSPARENT
     // Keep the active interpolation when switching appearance, so the current color never jumps.
@@ -36,7 +36,7 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
             cachedColor = color
             val alpha = Color.alpha(color) * BicycleDesign.modeGlowAlpha / 255
             val rgb = color and 0xffffff
-            shader = if (alpha == 0) null else RadialGradient(0f, 0f, 1f,
+            shader = if (flat || alpha == 0) null else RadialGradient(0f, 0f, 1f,
                 intArrayOf(rgb or (alpha shl 24), rgb or ((alpha / 2) shl 24), rgb), floatArrayOf(0f, .4f, 1f), Shader.TileMode.CLAMP)
         }
         if (flat && !bounds.isEmpty && Color.alpha(color)>0) {

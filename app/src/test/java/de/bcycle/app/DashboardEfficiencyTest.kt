@@ -59,7 +59,7 @@ class DashboardEfficiencyTest {
         assertEquals(view.context.getString(R.string.dashboard_no_data),tile().contentDescription)
         view.showDataVisibility(DashboardDataVisibility());show();assertTrue(tile().contentDescription.toString().contains("Tour"))
     }
-    @Test fun unchangedTrainingSnapshotStillAdoptsNewFlatAndGlowColors() {
+    @Test fun unchangedTrainingSnapshotAlwaysUsesNaturalZoneStripsDespiteLegacyStyleCalls() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -71,7 +71,8 @@ class DashboardEfficiencyTest {
                 view.showTraining(config,snapshot)
                 val background=view.findViewWithTag<View>("dashboard_tile_2").background as android.graphics.drawable.LayerDrawable
                 val zone=(0 until background.numberOfLayers).map(background::getDrawable).filterIsInstance<ZoneAmbientGlow>().single()
-                assertEquals(snapshot.glow(ZoneGlowSource.POWER_CURRENT,false,natural=flat),zone.currentColor())
+                assertTrue(zone.flat)
+                assertEquals(snapshot.glow(ZoneGlowSource.POWER_CURRENT,false,natural=true),zone.currentColor())
             }
         } finally { host.pause().stop().destroy() }
     }

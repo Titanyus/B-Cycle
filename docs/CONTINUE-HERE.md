@@ -1,6 +1,12 @@
-# Neue Themefarben nach Build161 (noch unveröffentlicht)
+# Neue Änderungen nach Build161 (noch unveröffentlicht)
 
-Sieben normale PRIMARY-Farben behalten, siebenDark-Varianten durch HSV-Zwischentöne ersetzt: Ember Rush/Gold Rush/Citrus Charge/Emerald Surge/Tidal Blue/Indigo Rush/Neon Bloom. Insgesamt14verschiedene PRIMARY; ACCENT immer gleichPRIMARY, SECONDARY161522/TERTIARY282735/FOREGROUNDFFFFFF für alle identisch. Normale IDs bleiben, Dark-IDs samt Legacy-Aliases auf nachfolgendes Zwischen-Theme abbilden; gespeicherte Auswahl wird kanonisch gelesen. [Tabelle/Verfahren](theme-palettes.md). Theme-/Manager-/Picker-/Light-Projektionsprüfungen erfolgreich, einschließlich Migration aller7gespeicherten Dark-Auswahlen (fourteen-primary-themes-final-tests.log). Katalog regeneriert, zentrale Prüfungen grün. Keine neue APK beauftragt.
+Ein Stil auf bisheriger Glow-Basis, Flat-Auswahl aus Dashboards & UI entfernt. Historischer Flat-Key wirkungslos/retired, aus neuen Backups entfernt, alte Backups lesbar. Dashboard-Zonenindikatoren immer bisherige Flat-Striche mit8%-Höhe und HSV-Übergängen. [Details](unified-ui-style.md).
+
+NP: ConfirmedBikePause wartet bei belegtem Stillstand ohne Leistungsdaten nicht länger auf BLE-Abschaltung. Frische/Genauigkeit/10s-Stillstand erhalten,90%-Qualitätsgrenzen unverändert. Nutzer bestätigt lange Anfangspause und lässt E-Bike dabei an. [Details](confirmed-np-pause.md).
+
+FIT: eigene alte Höhenkorrektur-memo_glob-Nachricht erzeugt reproduzierbaren FITFileViewer-Absturz. Künftig weglassen, eigene Altkommentare bei erneuter Korrektur entfernen, andere Kommentare erhalten. Garmin-Validierung der privaten Datei vollständig ohne Fehler, Viewer-Kopie nach binärer Entfernung eines Kommentars lesbar. Private bereinigte FIT nur /workspace/shared/downloads/B-Cycle-bereinigt.fit; sämtliche sonstigen Felder unverändert, keine NP nachgetragen. Niemals private FIT/Samples ins Repo. [Nachweis](fit-comment-compatibility.md).
+
+Gezielte Tests unified-style-np-fit-final-verified-tests.log und fit-memo-and-zone-strip-guard-tests.log, Offline-Katalog geprüft. Keine neue APK beauftragt.
 
 # Aktueller Stand: APK0.8.116 / Build161
 

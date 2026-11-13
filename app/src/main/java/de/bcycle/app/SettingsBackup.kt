@@ -58,7 +58,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
         val sections = JSONObject()
         selected.forEach { section -> sections.put(section.id, when(section) {
             BackupSection.DESIGN -> JSONObject().put("activeThemeId", themes.active.id).put("customThemes", jsonArray(themes.customThemes.map(::themeJson)))
-                .put("settingsLight",themes.settingsLight).put("flatDesign",themes.flatDesign)
+                .put("settingsLight",themes.settingsLight)
                 .put("drinkReminder",DrinkReminderSettings.read(bike).enabled)
                 .put("drinkReminderMinutes",DrinkReminderSettings.read(bike).minutes)
                 .put("drinkReminderDuration",DrinkReminderSettings.read(bike).durationSeconds)
@@ -155,7 +155,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     check(BicycleThemes.findPreset(active)!=null || custom.any { it.id==active })
                     if(row.has("activeThemeId")) b[ThemeManager.activeKey]=BicycleThemes.findPreset(active)?.id ?: active
                     if(row.has("settingsLight")) b[ThemeManager.settingsLightKey]=boolean(row,"settingsLight")
-                    if(row.has("flatDesign")) b[BicycleAppearance.flatKey]=boolean(row,"flatDesign")
+                    if(row.has("flatDesign")) boolean(row,"flatDesign") // Validate old backups, but never restore the retired style.
                     if(row.has("drinkReminder")) b[DrinkReminderSettings.enabledKey]=boolean(row,"drinkReminder")
                     if(row.has("drinkReminderMinutes")) {
                         val minutes=integer(row,"drinkReminderMinutes");check(DrinkReminderSettings.valid(minutes))

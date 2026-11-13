@@ -1443,11 +1443,6 @@ class MainActivity : Activity() {
     }
     private fun dashboardControls(embedded:Boolean=false):View {
         val root = column()
-        root.addView(Switch(settingsContext).apply {
-            tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign
-            BicycleDialogStyle.control(this,settingsThemes)
-            setOnCheckedChangeListener { _,checked -> settingsThemes.setFlatDesign(checked) }
-        })
         root.addView(ThemePickerView(settingsContext,settingsThemes))
         root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,changed={ updateDashboardFullscreen() }))
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_dashboard_divider" })

@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 /** Only the compatibility boundary knows these removed options. Never export or apply them. */
 internal object RetiredProfileSettings {
-    val designKeys=setOf("modeGlowEnabled","modeGlowPlacement","bikeLightPlacement")
+    val designKeys=setOf(BicycleAppearance.flatKey,"modeGlowEnabled","modeGlowPlacement","bikeLightPlacement")
     const val warningKey="shiftBatteryWarning"
     fun cleanBank(bank:JSONObject):JSONObject = bank.apply {
         keys().forEach { slot -> optJSONObject(slot)?.let { row -> designKeys.forEach(row::remove) } }

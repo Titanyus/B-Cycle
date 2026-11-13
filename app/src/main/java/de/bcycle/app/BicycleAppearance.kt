@@ -4,10 +4,11 @@ import android.content.Context
 import android.view.View
 import android.widget.Button
 
-/** Optional decoration over the same native controls. Never changes geometry or behavior. */
+/** One UI appearance: the former Glow geometry. Legacy Flat settings have no effect. */
 internal object BicycleAppearance {
     const val flatKey="uiTheme.flatDesign"
-    fun flat(context:Context)=context.getSharedPreferences("bike",0).getBoolean(flatKey,false)
+    @Suppress("UNUSED_PARAMETER")
+    fun flat(context:Context)=false
     fun base(view:View) {
         val flat=flat(view.context)
         val shadow=if(flat) android.graphics.Color.TRANSPARENT else android.graphics.Color.BLACK

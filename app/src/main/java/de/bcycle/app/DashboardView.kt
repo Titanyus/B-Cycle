@@ -227,7 +227,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         fun footerOffset(offset:Float) {
             title.translationY=offset;row.translationY=offset;batteryGrid.translationY=offset
         }
-        internal val zoneGlow=ZoneAmbientGlow().apply { flat=BicycleAppearance.flat(context) }
+        internal val zoneGlow=ZoneAmbientGlow().apply { flat=true }
         private var zoneShown=false
         fun updateGlow() {
             if(!zoneShown && zoneConfig.sources[index]!=ZoneGlowSource.OFF) {
@@ -236,7 +236,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp,natural=zoneGlow.flat))
         }
-        fun refreshAppearance() { zoneGlow.flat=BicycleAppearance.flat(context);if(plainBackground!=null) updateBackground();container.invalidate() }
+        fun refreshAppearance() {if(plainBackground!=null) updateBackground();container.invalidate() }
         private fun updateBackground() {
             val layers=mutableListOf(plainBackground!!)
             if(zoneShown) layers+=zoneGlow

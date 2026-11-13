@@ -26,8 +26,10 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     val customThemes: List<CustomTheme> get() = settingsSource?.customThemes ?: synchronized(lock) { customs.toList() }
     val isSettingsPalette get() = settingsSource != null
     val settings: ThemeManager by lazy { if(isSettingsPalette) this else ThemeManager(preferences,this) }
-    val flatDesign get() = preferences.getBoolean(BicycleAppearance.flatKey,false)
-    fun setFlatDesign(flat:Boolean) { preferences.edit().putBoolean(BicycleAppearance.flatKey,flat).apply() }
+    val flatDesign get() = false
+    /** Source compatibility only; the removed style choice is never persisted. */
+    @Suppress("UNUSED_PARAMETER")
+    fun setFlatDesign(flat:Boolean) = Unit
     val settingsLight get() = preferences.getBoolean(settingsLightKey,false)
     fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
     fun forDisplay(theme:BicycleTheme):BicycleTheme {
@@ -41,7 +43,7 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     internal val baseTokens get() = (settingsSource?.active ?: synchronized(lock) { current }).tokens
     val active: BicycleTheme get() = forDisplay(settingsSource?.active ?: synchronized(lock) { current })
     private val settingsListener=SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
-        if(key==settingsLightKey && isSettingsPalette || key==BicycleAppearance.flatKey && !isSettingsPalette) publish()
+        if(key==settingsLightKey && isSettingsPalette) publish()
     }
     init {
         check(presets.all { ThemeValidator.validate(it).valid } && presets.map { it.id }.distinct().size == presets.size)

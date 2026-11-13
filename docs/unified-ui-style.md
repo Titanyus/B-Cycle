@@ -1,0 +1,7 @@
+# Ein einheitlicher Stil · 13.11.2026
+
+App verwendet nur die bisherige Glow-Geometrie: gerundete Sticky-Kästen und bisherige Header-/Footergestaltung. Flat-Schalter aus Dashboards & UI entfernt. Historische Flat-Preference kann die Darstellung nicht mehr ändern. Bestehende Schlüssel beim normalen Runtime-Start über RetiredProfileSettings entfernt; alte Backups validieren das frühere Boolean-Feld, ignorieren es beim Restore und exportieren es nicht mehr. Historische ThemeManager-Setter bleiben als wirkungslose Quellkompatibilität für bestehende Aufrufer/Tests, kein auswählbarer zweiter Stil.
+
+Dashboard-Zonenindikatoren werden unabhängig davon immer als bisherige Flat-Striche unten gezeichnet:8% der Kachelhöhe, normale SRC_OVER-Komposition, natürliche HSV-Farbbogen-Übergänge und identische Endfarben. Keine radiale Zone auf dem Dashboard und kein Radialgradient-Aufbau für Striche. Zonenberechnung, Aufnahme, Graphen und funktionaler Bosch-/HRV-Glow unverändert.
+
+Tests: UnifiedStyleTest prüft fehlenden Umschalter, ThemePicker als erstes Design-Objekt, alte Flat=true-Sicherung ohne Reaktivierung, tatsächliches Anwenden des Restores und Entfernen des Keys. SettingsBoxesTest prüft identische Glow-Geometrie trotz alter Style-Setter. Tatsächlicher DashboardView-Strichmodus sowie8%-Geometrie/HSV-Endfarben geprüft. Logs unified-style-np-fit-final-verified-tests.log und fit-memo-and-zone-strip-guard-tests.log. Offline-Katalog ohne Flat-Umschalter,14Themes und ohne JavaScriptfehler geprüft.
