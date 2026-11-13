@@ -43,3 +43,5 @@ Der Vollbildhost hatte die zentrale Footerfläche nachträglich auf TERTIARY üb
 ## FIT-Speicherauswahl
 
 Unter dem weiterhin aufklappbaren „Zu speichernde Daten für die .fit-Datei“ bleibt die Erklärung stehen; Metadaten und alle bisherigen Datenquellen erhalten darunter eine gemeinsame BicycleGroupedBox. Metadaten-Wrapper samt Prefs-Listener bleibt erhalten, sein originaler Rahmen wird nur gruppiert dargestellt. IDs, Expanded-State, Feldschalter und Save-Callback unverändert. Prüfung fit-stored-group-final-tests.log für Profiltypen/Flat/Glow und Metadaten; ältere Sensorprüfung auf Separatoren in der schon eingeführten Kombibox angepasst.
+
+13.11.2026: BC.zip liefert drei neue WEBPs (je1536×1024). Bike/Training ersetzen ursprüngliche PNGs, HRV bekommt eigenes Bild. Originaldateien unverändert, bestehende proportionale Darstellung oben ausgerichtet und über volle Kastenbreite erhalten.

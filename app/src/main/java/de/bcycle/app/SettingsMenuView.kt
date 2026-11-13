@@ -101,6 +101,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     }
     private fun addGroup(title:String,icon:BicycleIcon,left:List<SettingsAction>,right:List<SettingsAction>) {
         val image=when(title) {
+            "HRV" -> SettingsGroupBackground(context,R.drawable.settings_hrv_background)
             "Bike" -> SettingsGroupBackground(context,R.drawable.settings_bike_background)
             context.getString(R.string.training_title) -> SettingsGroupBackground(context,R.drawable.settings_training_background)
             else -> null

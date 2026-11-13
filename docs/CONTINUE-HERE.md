@@ -1,3 +1,7 @@
+# Neue Bilder nach Build160 (noch unveröffentlicht)
+
+BC.zip vom Nutzer: App-Bike.webp/App-Training.webp/App-HRV.webp bytegleich nach drawable-nodpi übernommen. Alte zwei PNGs ersetzt, HRV erstmals mit Bild. Bestehende SettingsGroupBackground-Darstellung vollbreit/proportional/oben ausgerichtet unverändert. Prüfung SettingsBoxesTest in Flat/Glow bei288/360/480dp erfolgreich (settings-bc-artwork-tests.log), native Glow-Vorschau angesehen. Bei nächster APK Bildverifikation auf drei WEBPs statt zwei PNGs anpassen. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.115 / Build160
 
 Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung15b5c56f.
