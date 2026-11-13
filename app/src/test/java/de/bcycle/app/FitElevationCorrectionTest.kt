@@ -45,7 +45,7 @@ class FitElevationCorrectionTest {
         val corrected=output.inputStream().use { FitDecoder().decode(it,validator) }
         assertTrue(validator.results.filter { it.status==ActivityFileValidationResult.Status.FAILED }.toString(),validator.results.none { it.status==ActivityFileValidationResult.Status.FAILED })
         assertEquals(old.recordMesgs.size,corrected.recordMesgs.size)
-        assertTrue(corrected.memoGlobMesgs.isNotEmpty())
+        assertTrue(corrected.memoGlobMesgs.isEmpty())
         assertEquals(old.fieldDescriptionMesgs.map { it.fieldName.toList() },corrected.fieldDescriptionMesgs.map { it.fieldName.toList() })
         old.recordMesgs.zip(corrected.recordMesgs).forEach { (a,b) ->
             assertEquals(a.timestamp.timestamp,b.timestamp.timestamp);assertEquals(a.positionLat,b.positionLat);assertEquals(a.positionLong,b.positionLong)
@@ -170,4 +170,11 @@ class FitElevationCorrectionTest {
             switch.performClick();assertFalse(FitElevationCorrection.enabled(activity))
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun removesOnlyOwnLegacyElevationCommentAndPreservesRideNotes() {
+        fun memo(text:String)=com.garmin.fit.MemoGlobMesg().apply { text.toByteArray(Charsets.UTF_8).forEachIndexed { i,b -> setMemo(i,b) } }
+        assertTrue(FitElevationCorrection.isElevationComment(memo("Elevation corrected with Mapterhorn; source attribution and licences: https://mapterhorn.com/attribution")))
+        assertFalse(FitElevationCorrection.isElevationComment(memo("B|CYCLE note\nMeine Fahrt")))
+        assertFalse(FitElevationCorrection.isElevationComment(com.garmin.fit.MemoGlobMesg().apply { setData(0,65.toShort()) }))
+    }
+
 }

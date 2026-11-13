@@ -12,6 +12,12 @@ internal object FitElevationCorrection {
     fun enabled(context:Context)=context.getSharedPreferences("bike",0).getBoolean(preference,false)
     private data class Point(val time:Double?,val lat:Double?,val lon:Double?,val speed:Double?,val running:Boolean,
         var height:Double?=null,var up:Double=0.0,var down:Double=0.0,var grade:Double?=null)
+    internal fun isElevationComment(message:Mesg):Boolean {
+        if(message.num!=145) return false
+        val data=MemoGlobMesg(message).memo ?: return false
+        if(data.any { it==null }) return false
+        return data.toByteArray().toString(Charsets.UTF_8).startsWith("Elevation corrected with Mapterhorn;")
+    }
     fun encode(original:File,output:File,source:ElevationSource,cancelled:()->Boolean={false}) {
         if(cancelled() || Thread.currentThread().isInterrupted) throw IOException("Cancelled")
         require(original.canonicalFile!=output.canonicalFile)
@@ -70,6 +76,9 @@ internal object FitElevationCorrection {
         try {
             require(original.inputStream().buffered().use { Decode().read(it,MesgListener { m ->
                 checkStop()
+                // Older B|CYCLE exports used the deprecated memo field. Some readers
+                // assume modern memo_glob data/field_num fields and crash on it.
+                if(isElevationComment(m)) return@MesgListener
                 if(m.num==20) {
                     val p=points[index++]
                     for(name in listOf("altitude","enhanced_altitude","grade")) {
@@ -99,13 +108,7 @@ internal object FitElevationCorrection {
                     }
                 }
                 encoder.write(m)
-                if(m.num==18) {
-                    val memo=MemoGlobMesg().apply {
-                        partIndex=0;mesgNum=18;parentIndex=number(m,"message_index")?.toInt()?:0
-                        "Elevation corrected with Mapterhorn; source attribution and licences: https://mapterhorn.com/attribution".toByteArray(Charsets.UTF_8).forEachIndexed { i,b -> setMemo(i,b) }
-                    }
-                    encoder.write(memo)
-                }
+
             }) })
         } finally { encoder.close() }
         checkStop()
