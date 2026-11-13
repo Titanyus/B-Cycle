@@ -52,12 +52,12 @@ def manifest():
     assert all(name in tokens for name in required), 'Design token missing; update the catalog'
     theme_path = APP / 'java/de/bcycle/app/BicycleTheme.kt'
     themes = []
-    for row in re.findall(r'family\("([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)","([^"]+)"\)', theme_path.read_text()):
-        key, name, primary, secondary, tertiary, dark_s, dark_t = row
-        for dark in (False, True):
-            themes.append(dict(id=f'{key}-{"dark" if dark else "color"}', name=name + (' DARK' if dark else ''),
-                               primary='#' + primary, secondary='#' + (dark_s if dark else secondary),
-                               tertiary='#' + (dark_t if dark else tertiary), foreground='#FFFFFF', accent='#' + primary))
+    theme_source = theme_path.read_text()
+    secondary, tertiary = re.search(r'ThemeTokens\(color\(primary\),color\("([0-9A-F]+)"\),color\("([0-9A-F]+)"\)', theme_source).groups()
+    for key, name, primary in re.findall(r'palette\("([^"\n]+)","([^"\n]+)","([0-9A-F]+)"\)', theme_source):
+        themes.append(dict(id=f'{key}-color', name=name, primary='#' + primary,
+                           secondary='#' + secondary, tertiary='#' + tertiary,
+                           foreground='#FFFFFF', accent='#' + primary))
     assert len(themes) == 14
     icons = {}
     ns = '{http://schemas.android.com/apk/res/android}'

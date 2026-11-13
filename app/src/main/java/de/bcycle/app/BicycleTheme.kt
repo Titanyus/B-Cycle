@@ -29,26 +29,39 @@ data class CustomTheme(override val id: String, override val name: String,
 
 object BicycleThemes {
     private fun color(hex:String)=(0xff000000L or hex.toLong(16)).toInt()
-    private fun family(id:String,name:String,primary:String,secondary:String,tertiary:String,darkSecondary:String,darkTertiary:String):List<PresetTheme> {
-        fun theme(dark:Boolean):PresetTheme {
-            val t=ThemeTokens(color(primary),color(if(dark) darkSecondary else secondary),color(if(dark) darkTertiary else tertiary),0xffffffff.toInt(),color(primary))
-            val roles=listOf(ThemeRole.PRIMARY,ThemeRole.SECONDARY,ThemeRole.TERTIARY)
-            // These exact fixed palettes were chosen by the user; custom-theme checks remain strict.
-            val approved=roles.filter { ThemeValidator.contrast(t.foreground,t.color(it))<ThemeValidator.minimumTextContrast }.toSet()
-            return PresetTheme("preset:$id-${if(dark) "dark" else "color"}",name+if(dark) " DARK" else "",t,
-                approved,ThemeValidator.contrast(t.accent,t.secondary)<ThemeValidator.minimumIconContrast,true)
-        }
-        return listOf(theme(false),theme(true))
+    private fun palette(id:String,name:String,primary:String):PresetTheme {
+        val t=ThemeTokens(color(primary),color("161522"),color("282735"),0xffffffff.toInt(),color(primary))
+        val roles=listOf(ThemeRole.PRIMARY,ThemeRole.SECONDARY,ThemeRole.TERTIARY)
+        val approved=roles.filter { ThemeValidator.contrast(t.foreground,t.color(it))<ThemeValidator.minimumTextContrast }.toSet()
+        return PresetTheme("preset:$id-color",name,t,approved,
+            ThemeValidator.contrast(t.accent,t.secondary)<ThemeValidator.minimumIconContrast,true)
     }
+    // Seven original hues alternate with HSV midpoints (shortest hue arc, mean S/V).
+    // All presets share the normal dark surfaces; ACCENT always follows PRIMARY.
     val presets:List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
-        family("hellfire","HELLFIRE","BF281B","161522","282735","0F0A09","211918"),
-        family("solar-flare","SOLAR FLARE","F16A09","161522","282735","100B08","221A15"),
-        family("sunstruck","SUNSTRUCK","E9AF00","161522","282735","100E07","242014"),
-        family("acid-pop","ACID POP","7ACD04","161522","282735","0A0F07","192215"),
-        family("deep-dive","DEEP DIVE","06B5A1","161522","282735","07100F","142221"),
-        family("blue-riot","BLUE RIOT","145CD7","161522","282735","080B10","151B23"),
-        family("purple-haze","PURPLE HAZE","9224E0","161522","282735","0B0910","1A1624")
-    ).flatten())
+        palette("hellfire","HELLFIRE","BF281B"),
+        palette("ember-rush","EMBER RUSH","D84413"),
+        palette("solar-flare","SOLAR FLARE","F16A09"),
+        palette("gold-rush","GOLD RUSH","ED8C04"),
+        palette("sunstruck","SUNSTRUCK","E9AF00"),
+        palette("citrus-charge","CITRUS CHARGE","C9DB02"),
+        palette("acid-pop","ACID POP","7ACD04"),
+        palette("emerald-surge","EMERALD SURGE","05C121"),
+        palette("deep-dive","DEEP DIVE","06B5A1"),
+        palette("tidal-blue","TIDAL BLUE","0C96C6"),
+        palette("blue-riot","BLUE RIOT","145CD7"),
+        palette("indigo-rush","INDIGO RUSH","311CDC"),
+        palette("purple-haze","PURPLE HAZE","9224E0"),
+        palette("neon-bloom","NEON BLOOM","D01F95")
+    ))
+    private val darkReplacements=mapOf(
+        "preset:hellfire-dark" to "preset:ember-rush-color",
+        "preset:solar-flare-dark" to "preset:gold-rush-color",
+        "preset:sunstruck-dark" to "preset:citrus-charge-color",
+        "preset:acid-pop-dark" to "preset:emerald-surge-color",
+        "preset:deep-dive-dark" to "preset:tidal-blue-color",
+        "preset:blue-riot-dark" to "preset:indigo-rush-color",
+        "preset:purple-haze-dark" to "preset:neon-bloom-color")
     val red get()=presets.first()
     private val legacyIds=mapOf(
         "bicycle-red" to "hellfire-color", "black-ops" to "hellfire-dark", "embers-inv" to "hellfire-dark",
@@ -56,7 +69,7 @@ object BicycleThemes {
         "ultraviolet" to "purple-haze-color", "petrol-attack" to "deep-dive-color")
     fun findPreset(id:String?):PresetTheme? {
         val mapped=legacyIds[id?.removePrefix("preset:")]?.let { "preset:$it" } ?: id
-        return presets.find { it.id==mapped }
+        return presets.find { it.id==(darkReplacements[mapped] ?: mapped) }
     }
 }
 

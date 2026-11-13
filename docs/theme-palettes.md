@@ -1,31 +1,26 @@
-# Vorgegebene Themes
+# 14 Farbpaletten · 13.11.2026
 
-Alle bisherigen Themes werden durch 14 feste Basispaletten ersetzt. Die Oberfläche bietet ausschließlich diese Vorgaben an. Je Familie gibt es eine Variante ohne DARK mit gemeinsamen, am Screenshot orientierten Flächen und eine DARK-Variante. PRIMARY ist gleich. FOREGROUND ist immer #FFFFFF, ACCENT immer gleich PRIMARY.
+Die7bisherigen normalen PRIMARY-Farben bleiben. Die7Dark-Varianten sind durch neue Zwischentöne ersetzt. Alle14Themes verwenden SECONDARY #161522, TERTIARY #282735 und FOREGROUND #FFFFFF. ACCENT entspricht jeweils PRIMARY. Eigene Themes und funktionale Zonenfarben bleiben unabhängig.
 
-| Familie | PRIMARY | SECONDARY ohne DARK | TERTIARY ohne DARK | SECONDARY DARK | TERTIARY DARK |
-| --- | --- | --- | --- | --- | --- |
-| HELLFIRE | #BF281B | #161522 | #282735 | #0F0A09 | #211918 |
-| SOLAR FLARE | #F16A09 | #161522 | #282735 | #100B08 | #221A15 |
-| SUNSTRUCK | #E9AF00 | #161522 | #282735 | #100E07 | #242014 |
-| ACID POP | #7ACD04 | #161522 | #282735 | #0A0F07 | #192215 |
-| DEEP DIVE | #06B5A1 | #161522 | #282735 | #07100F | #142221 |
-| BLUE RIOT | #145CD7 | #161522 | #282735 | #080B10 | #151B23 |
-| PURPLE HAZE | #9224E0 | #161522 | #282735 | #0B0910 | #1A1624 |
-
-IDs: `preset:<familie>-color` bzw. `preset:<familie>-dark`, Familie kleingeschrieben mit Bindestrichen. Die exakten vom Nutzer gewählten Paletten bleiben auch bei geringem Kontrast oder subtilen Flächenabständen erhalten. Vorhandene per-Fläche-Fallbacks für lesbare Icons bleiben bestehen. Benutzerdefinierte Altdaten werden weiterhin streng geprüft; es gibt keinen UI-Einstieg zur Erstellung eigener Farben.
-
-Vorschauen zeigen nur die drei Flächenfarben. Globaler Hellmodus gilt ausschließlich für Einstellungen und berechnet die [leicht getönten hellen Werte](settings-appearance.md). Die eigentliche Palette und profilbezogene Themeauswahl bleiben erhalten.
-
-## Zuordnung alter Themes
-
-| Bisherige ID | Neues Theme |
+| Theme | PRIMARY = ACCENT |
 | --- | --- |
-| preset:bicycle-red | HELLFIRE |
-| preset:black-ops / preset:embers-inv | HELLFIRE DARK |
-| preset:solar-flare | SUNSTRUCK DARK |
-| preset:electric-blue | BLUE RIOT DARK |
-| preset:acid-lime | ACID POP DARK |
-| preset:ultraviolet | PURPLE HAZE |
-| preset:petrol-attack | DEEP DIVE |
+| Hellfire | #BF281B |
+| Ember Rush | #D84413 |
+| Solar Flare | #F16A09 |
+| Gold Rush | #ED8C04 |
+| Sunstruck | #E9AF00 |
+| Citrus Charge | #C9DB02 |
+| Acid Pop | #7ACD04 |
+| Emerald Surge | #05C121 |
+| Deep Dive | #06B5A1 |
+| Tidal Blue | #0C96C6 |
+| Blue Riot | #145CD7 |
+| Indigo Rush | #311CDC |
+| Purple Haze | #9224E0 |
+| Neon Bloom | #D01F95 |
 
-Die Zuordnung erfolgt beim Lesen von Profilen und Sicherungen. Neue IDs haben eindeutige Suffixe, damit das frühere FIRE (gespeichert als solar-flare) nicht mit dem neuen orangefarbenen SOLAR FLARE verwechselt wird. Sonstige Profilwerte und Sensorzuordnungen bleiben erhalten.
+Die neuen Farben sind HSV-Mittelpunkte zwischen den angrenzenden normalen Farben: halber kürzester Farbtonbogen, Mittelwerte für Sättigung/Helligkeit, RGB auf8Bit gerundet. Neon Bloom schließt den Kreis von Purple Haze zurück zu Hellfire. Feste Farbwerte statt Laufzeitberechnung.
+
+Normale IDs bleiben preset:<Name>-color. Alte preset:<Familie>-dark-IDs lösen auf das jeweils nachfolgende neue Zwischen-Theme auf; auch ältere Alias-IDs werden über dieselbe Kompatibilitätsauflösung weiter erkannt. ThemeManager schreibt beim Laden die kanonische neue ID. Profile und alte Sicherungen bleiben lesbar, ohne zusätzliche Migrationsflags oder eigene Paletten zu verändern. Die helle Einstellungsprojektion verwendet weiterhin ihre bestehende Berechnung.
+
+Tests für14eindeutige Farben, gemeinsame Flächen, ACCENT-Gleichheit, alte IDs/Neustart, Auswahl und helle Projektion: fourteen-primary-themes-final-tests.log. UI-Katalogparser auf14einzelne palette-Einträge umgestellt und Katalog regeneriert.

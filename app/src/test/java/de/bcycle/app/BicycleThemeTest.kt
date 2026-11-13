@@ -23,36 +23,33 @@ class BicycleThemeTest {
         assertFalse(ThemeValidator.validate(red.copy(name = "Name\n")).valid)
         assertFalse(ThemeValidator.validate(red.copy(id = "preset:")).valid)
     }
-    @Test fun fixedPalettesMatchAllFourteenRequestedSetsAndSharePrimaryByFamily() {
+    @Test fun fourteenUniquePrimariesShareNormalDarkSurfacesAndMatchingAccents() {
         val rows=listOf(
-            listOf("hellfire","BF281B","161522","282735","0F0A09","211918"),
-            listOf("solar-flare","F16A09","161522","282735","100B08","221A15"),
-            listOf("sunstruck","E9AF00","161522","282735","100E07","242014"),
-            listOf("acid-pop","7ACD04","161522","282735","0A0F07","192215"),
-            listOf("deep-dive","06B5A1","161522","282735","07100F","142221"),
-            listOf("blue-riot","145CD7","161522","282735","080B10","151B23"),
-            listOf("purple-haze","9224E0","161522","282735","0B0910","1A1624"))
+            "hellfire" to "BF281B", "ember-rush" to "D84413", "solar-flare" to "F16A09", "gold-rush" to "ED8C04",
+            "sunstruck" to "E9AF00", "citrus-charge" to "C9DB02", "acid-pop" to "7ACD04", "emerald-surge" to "05C121",
+            "deep-dive" to "06B5A1", "tidal-blue" to "0C96C6", "blue-riot" to "145CD7", "indigo-rush" to "311CDC",
+            "purple-haze" to "9224E0", "neon-bloom" to "D01F95")
         fun color(s:String)=(0xff000000L or s.toLong(16)).toInt()
-        assertEquals(14,BicycleThemes.presets.size)
-        rows.forEach { row ->
-            for(dark in listOf(false,true)) {
-                val t=BicycleThemes.presets.single { it.id=="preset:${row[0]}-${if(dark) "dark" else "color"}" }
-                assertEquals(ThemeTokens(color(row[1]),color(row[if(dark) 4 else 2]),color(row[if(dark) 5 else 3]),color("FFFFFF"),color(row[1])),t.tokens)
-                assertTrue(ThemeValidator.validate(t).problems.toString(),ThemeValidator.validate(t).valid)
-                val light=t.tokens.lightSettings()
-                assertEquals(t.tokens.primary,light.primary);assertEquals(t.tokens.accent,light.accent)
-                assertEquals(color("FFFFFF"),light.secondary)
-                assertTrue(ThemeValidator.contrast(light.foreground,light.secondary)>15.0)
-            }
+        assertEquals(rows.map { "preset:${it.first}-color" },BicycleThemes.presets.map { it.id })
+        assertEquals(14,BicycleThemes.presets.map { it.tokens.primary }.distinct().size)
+        rows.zip(BicycleThemes.presets).forEach { (row,t) ->
+            assertEquals(ThemeTokens(color(row.second),color("161522"),color("282735"),color("FFFFFF"),color(row.second)),t.tokens)
+            assertFalse(t.name.contains("DARK"))
+            assertTrue(ThemeValidator.validate(t).problems.toString(),ThemeValidator.validate(t).valid)
+            val light=t.tokens.lightSettings()
+            assertEquals(t.tokens.primary,light.primary);assertEquals(t.tokens.accent,light.accent)
+            assertEquals(color("FFFFFF"),light.secondary)
         }
+        val old=listOf("hellfire","solar-flare","sunstruck","acid-pop","deep-dive","blue-riot","purple-haze")
+        old.forEachIndexed { i,id -> assertEquals(BicycleThemes.presets[i*2+1],BicycleThemes.findPreset("preset:$id-dark")) }
     }
     @Test fun legacyIdsResolveToNewPresetsAndLightTintHasFixedSubtleStrength() {
         val t=BicycleThemes.findPreset("preset:black-ops")!!
-        assertEquals("preset:hellfire-dark",t.id)
+        assertEquals("preset:ember-rush-color",t.id)
         assertEquals("preset:hellfire-color",BicycleThemes.findPreset("preset:bicycle-red")!!.id)
-        assertEquals("preset:sunstruck-dark",BicycleThemes.findPreset("preset:solar-flare")!!.id)
-        assertEquals(0xff191111.toInt(),t.tokens.lightSettings().foreground)
-        assertEquals(0xffcfc3c2.toInt(),t.tokens.lightSettings().tertiary)
+        assertEquals("preset:citrus-charge-color",BicycleThemes.findPreset("preset:solar-flare")!!.id)
+        assertEquals(0xff191111.toInt(),BicycleThemes.red.tokens.lightSettings().foreground)
+        assertEquals(0xffcfc3c2.toInt(),BicycleThemes.red.tokens.lightSettings().tertiary)
         assertNull(BicycleThemes.findPreset("preset:unknown"))
     }
 }

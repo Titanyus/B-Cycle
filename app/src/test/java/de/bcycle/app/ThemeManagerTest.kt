@@ -99,4 +99,18 @@ class ThemeManagerTest {
         (snapshot as MutableList).clear()
         assertEquals(ThemeManager.maximumCustomThemes, manager.customThemes.size)
     }
+    @Test fun storedDarkSelectionsResolveToMidpointPresetsAndPersistCanonicalIds() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication()
+        val old=listOf("hellfire","solar-flare","sunstruck","acid-pop","deep-dive","blue-riot","purple-haze")
+        old.forEachIndexed { index,name ->
+            val prefs=c.getSharedPreferences("dark-midpoint-$name",0)
+            prefs.edit().putString(ThemeManager.activeKey,"preset:$name-dark").putString("dashboardTemplate_0","FOUR").commit()
+            val manager=ThemeManager(prefs);val expected=BicycleThemes.presets[index*2+1]
+            assertEquals(expected,manager.active)
+            assertEquals(expected.id,prefs.getString(ThemeManager.activeKey,null))
+            assertEquals(expected,ThemeManager(prefs).active)
+            assertEquals("FOUR",prefs.getString("dashboardTemplate_0",null))
+        }
+    }
+
 }

@@ -1,3 +1,7 @@
+# Neue Themefarben nach Build161 (noch unveröffentlicht)
+
+Sieben normale PRIMARY-Farben behalten, siebenDark-Varianten durch HSV-Zwischentöne ersetzt: Ember Rush/Gold Rush/Citrus Charge/Emerald Surge/Tidal Blue/Indigo Rush/Neon Bloom. Insgesamt14verschiedene PRIMARY; ACCENT immer gleichPRIMARY, SECONDARY161522/TERTIARY282735/FOREGROUNDFFFFFF für alle identisch. Normale IDs bleiben, Dark-IDs samt Legacy-Aliases auf nachfolgendes Zwischen-Theme abbilden; gespeicherte Auswahl wird kanonisch gelesen. [Tabelle/Verfahren](theme-palettes.md). Theme-/Manager-/Picker-/Light-Projektionsprüfungen erfolgreich, einschließlich Migration aller7gespeicherten Dark-Auswahlen (fourteen-primary-themes-final-tests.log). Katalog regeneriert, zentrale Prüfungen grün. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.116 / Build161
 
 Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichungfe1c85ed.
